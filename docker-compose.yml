@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build: .
+    image: filpo271/pokemart-app:local
+    container_name: pokemart-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt 
+      - ./data/certbot/www:/var/www/certbot

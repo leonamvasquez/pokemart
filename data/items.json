@@ -1,0 +1,502 @@
+[
+  {
+    "id": 1771725587001,
+    "name": "Poké Ball",
+    "category": "Poké Balls",
+    "price": 200,
+    "stock": 10,
+    "description": "Uma Pokébola padrão para capturar Pokémon selvagens.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587002,
+    "name": "Great Ball",
+    "category": "Poké Balls",
+    "price": 400,
+    "stock": 10,
+    "description": "Uma boa Pokébola com uma taxa de captura maior do que uma Pokébola comum.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587003,
+    "name": "Ultra Ball",
+    "category": "Poké Balls",
+    "price": 800,
+    "stock": 10,
+    "description": "Uma Pokébola melhor, com uma taxa de captura maior do que uma Great Ball.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587004,
+    "name": "Master Ball",
+    "category": "Poké Balls",
+    "price": 1600,
+    "stock": 10,
+    "description": "A melhor Pokébola para capturar um Pokémon sem falhar.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587005,
+    "name": "Safari Ball",
+    "category": "Poké Balls",
+    "price": 100,
+    "stock": 10,
+    "description": "Uma Pokébola especial que é usada somente na Zona do Safari.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/safari-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587006,
+    "name": "Potion",
+    "category": "Itens de Cura",
+    "price": 300,
+    "stock": 10,
+    "description": "Restaura 20 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587007,
+    "name": "Super Potion",
+    "category": "Itens de Cura",
+    "price": 400,
+    "stock": 10,
+    "description": "Restaura 50 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/super-potion.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587008,
+    "name": "Hyper Potion",
+    "category": "Itens de Cura",
+    "price": 500,
+    "stock": 10,
+    "description": "Restaura 200 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/hyper-potion.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587009,
+    "name": "Max Potion",
+    "category": "Itens de Cura",
+    "price": 600,
+    "stock": 10,
+    "description": "Restaura completamente os pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/max-potion.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587010,
+    "name": "Full Restore",
+    "category": "Itens de Cura",
+    "price": 700,
+    "stock": 10,
+    "description": "Restaura completamente os PV e o status de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/full-restore.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587011,
+    "name": "Cheri Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que cura paralisia em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/cheri-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587012,
+    "name": "Chesto Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item que desperta Pokémon em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/chesto-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587013,
+    "name": "Pecha Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que cura envenenamento em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/pecha-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587014,
+    "name": "Rawst Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que cura queimaduras em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rawst-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587015,
+    "name": "Aspear Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item que descongela Pokémon em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/aspear-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587016,
+    "name": "X Attack",
+    "category": "Itens de Batalha",
+    "price": 300,
+    "stock": 10,
+    "description": "Aumenta o atributo Ataque durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-attack.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587017,
+    "name": "X Defense",
+    "category": "Itens de Batalha",
+    "price": 300,
+    "stock": 10,
+    "description": "Aumenta o atributo Defesa durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-defense.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587018,
+    "name": "X Speed",
+    "category": "Itens de Batalha",
+    "price": 300,
+    "stock": 10,
+    "description": "Aumenta o atributo Velocidade durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-speed.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587019,
+    "name": "X Accuracy",
+    "category": "Itens de Batalha",
+    "price": 300,
+    "stock": 10,
+    "description": "Aumenta a precisão dos ataques durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-accuracy.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587020,
+    "name": "Dire Hit",
+    "category": "Itens de Batalha",
+    "price": 300,
+    "stock": 10,
+    "description": "Aumenta a taxa de acerto crítico durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dire-hit.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587021,
+    "name": "Net Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola que funciona bem em Pokémon dos tipos Água e Inseto.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/net-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587022,
+    "name": "Dive Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola que funciona melhor ao capturar Pokémon subaquáticos.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dive-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587023,
+    "name": "Nest Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola que funciona melhor em Pokémon de nível baixo.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/nest-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587024,
+    "name": "Repeat Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola que funciona bem em Pokémon que você já capturou antes.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/repeat-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587025,
+    "name": "Timer Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola que se torna mais eficaz à medida que a batalha se prolonga.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/timer-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587026,
+    "name": "Luxury Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola confortável que torna o Pokémon capturado mais amigável.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/luxury-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587027,
+    "name": "Premier Ball",
+    "category": "Poké Balls",
+    "price": 200,
+    "stock": 10,
+    "description": "Uma Pokébola rara comemorativa de algum evento especial.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/premier-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587028,
+    "name": "Dusk Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola que facilita a captura de Pokémon à noite ou em cavernas.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dusk-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587029,
+    "name": "Heal Ball",
+    "category": "Poké Balls",
+    "price": 300,
+    "stock": 10,
+    "description": "Uma Pokébola que restaura completamente o PV e o status do Pokémon capturado.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/heal-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587030,
+    "name": "Quick Ball",
+    "category": "Poké Balls",
+    "price": 1000,
+    "stock": 10,
+    "description": "Uma Pokébola com alta taxa de sucesso se usada no primeiro turno da batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/quick-ball.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587031,
+    "name": "Antidote",
+    "category": "Itens de Cura",
+    "price": 100,
+    "stock": 10,
+    "description": "Cura um Pokémon de envenenamento.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/antidote.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587032,
+    "name": "Burn Heal",
+    "category": "Itens de Cura",
+    "price": 250,
+    "stock": 10,
+    "description": "Cura um Pokémon de queimadura.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/burn-heal.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587033,
+    "name": "Ice Heal",
+    "category": "Itens de Cura",
+    "price": 250,
+    "stock": 10,
+    "description": "Descongela um Pokémon que foi congelado.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ice-heal.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587034,
+    "name": "Awakening",
+    "category": "Itens de Cura",
+    "price": 250,
+    "stock": 10,
+    "description": "Desperta um Pokémon que está dormindo.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/awakening.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587035,
+    "name": "Paralyze Heal",
+    "category": "Itens de Cura",
+    "price": 200,
+    "stock": 10,
+    "description": "Cura um Pokémon de paralisia.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/paralyze-heal.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587036,
+    "name": "Full Heal",
+    "category": "Itens de Cura",
+    "price": 600,
+    "stock": 10,
+    "description": "Cura um Pokémon de todos os problemas de status.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/full-heal.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587037,
+    "name": "Revive",
+    "category": "Itens de Cura",
+    "price": 1500,
+    "stock": 10,
+    "description": "Revive um Pokémon desmaiado, restaurando metade de seu PV máximo.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/revive.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587038,
+    "name": "Max Revive",
+    "category": "Itens de Cura",
+    "price": 4000,
+    "stock": 10,
+    "description": "Revive um Pokémon desmaiado, restaurando todo o seu PV máximo.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/max-revive.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587039,
+    "name": "Fresh Water",
+    "category": "Itens de Cura",
+    "price": 200,
+    "stock": 10,
+    "description": "Água rica em minerais que restaura 30 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/fresh-water.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587040,
+    "name": "Soda Pop",
+    "category": "Itens de Cura",
+    "price": 300,
+    "stock": 10,
+    "description": "Uma bebida gaseificada que restaura 50 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/soda-pop.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587041,
+    "name": "Lemonade",
+    "category": "Itens de Cura",
+    "price": 350,
+    "stock": 10,
+    "description": "Uma bebida muito doce que restaura 70 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lemonade.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587042,
+    "name": "Moomoo Milk",
+    "category": "Itens de Cura",
+    "price": 500,
+    "stock": 10,
+    "description": "Leite altamente nutritivo que restaura 100 pontos de vida de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/moomoo-milk.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587043,
+    "name": "Leppa Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que restaura 10 PP de um dos movimentos do Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/leppa-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587044,
+    "name": "Oran Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que restaura 10 pontos de vida de um Pokémon em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/oran-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587045,
+    "name": "Persim Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que cura confusão em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/persim-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587046,
+    "name": "Lum Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que cura qualquer problema de status em batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lum-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587047,
+    "name": "Sitrus Berry",
+    "category": "Berries",
+    "price": 100,
+    "stock": 10,
+    "description": "Um item para equipar que restaura uma pequena quantidade de PV de um Pokémon.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/sitrus-berry.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587048,
+    "name": "Guard Spec.",
+    "category": "Itens de Batalha",
+    "price": 700,
+    "stock": 10,
+    "description": "Impede que os atributos do seu Pokémon sejam reduzidos por 5 turnos.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/guard-spec.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587049,
+    "name": "X Sp. Atk",
+    "category": "Itens de Batalha",
+    "price": 350,
+    "stock": 10,
+    "description": "Aumenta o atributo Ataque Especial durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-sp-atk.png",
+    "deleted": false
+  },
+  {
+    "id": 1771725587050,
+    "name": "X Sp. Def",
+    "category": "Itens de Batalha",
+    "price": 350,
+    "stock": 10,
+    "description": "Aumenta o atributo Defesa Especial durante uma batalha.",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/x-sp-def.png",
+    "deleted": false
+  }
+]

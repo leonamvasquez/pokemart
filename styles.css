@@ -1,0 +1,522 @@
+@font-face {
+    font-family: 'Inter';
+    src: url('./fonts/inter-v20-latin-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap; 
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('./fonts/inter-v20-latin-700.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Press Start 2P';
+    src: url('./fonts/press-start-2p-v16-latin-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    position: relative;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    font-family: 'Press Start 2P', sans-serif;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: #1D4ED8;
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),
+                0 4px 6px -2px rgba(0,0,0,0.05);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+}
+
+main {
+    flex: 1;
+    padding-top: 86px;
+    transition: opacity 0.2s ease-in-out;
+}
+
+main.loading {
+    opacity: 0;
+}
+
+.logo-texto {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-texto h1, .logo-texto h2 {
+    margin: 0;
+}
+
+.logo-texto h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2rem;
+}
+
+.menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.menu a {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    margin-left: 20px;
+    text-decoration: none;
+    color: white;
+    transition: color 0.3s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.menu a:hover {
+    color: #FACC15;
+}
+
+.menu img {
+    width: 36px;
+    height: auto;
+    display: block;
+    transform: translateY(-1px);
+}
+
+.cart-button {
+    background-color: #1E40AF;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.cart-button:hover {
+    background-color: #1E3A8A;
+}
+
+.cart-button img {
+    width: 34px;
+    height: auto;
+    display: block;
+    transform: translate(1.5px, 0.8px);
+}
+
+#cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 13px;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+@keyframes badge-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.pulse-animation {
+    animation: badge-pulse 0.3s ease-in-out;
+}
+
+.hamburger-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 15px;
+}
+
+.hamburger-btn span {
+    pointer-events: none;
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0; 
+    transform: translateX(100%);
+    width: 280px;
+    height: 100vh; 
+    background-color: #f8fafc;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out; 
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; 
+    visibility: hidden; 
+    padding: 20px; 
+    font-family: 'Inter', sans-serif;
+}
+
+.drawer.active {
+    transform: translateX(0);
+    visibility: visible;
+}
+
+#menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+    backdrop-filter: blur(2px); 
+}
+
+#menu-overlay.active {
+    display: block;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.drawer-header span {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    color: #1D4ED8;
+}
+
+#close-menu {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+}
+
+#close-menu:active {
+    transform: scale(0.9);
+}
+
+#menu-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#menu-links li {
+    margin-bottom: 15px;
+}
+
+#menu-links a, 
+.menu-logout-btn {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 12px 15px;
+    background-color: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    color: #1e293b;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: left;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+#menu-links a:hover {
+    background-color: #1D4ED8;
+    color: white;
+    border-color: #1D4ED8;
+}
+
+#menu-links a.active-link {
+    background-color: #1D4ED8; 
+    color: white;
+    border-color: #1D4ED8;
+    position: relative;
+}
+
+.menu-logout-btn {
+    font-family: 'Inter', sans-serif;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.menu-logout-btn:hover {
+    background-color: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+footer {
+    background: #f0f1f5;
+    border-top: 2px solid #e6e7eb;
+    margin-top: 3rem;
+    padding: 2rem 0;
+}
+
+footer p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.footer-container {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.675rem;
+}
+
+.footer-container .slogan {
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+items-page:not(:defined), items-page[loading],
+cart-page:not(:defined), cart-page[loading],
+item-details-page:not(:defined), item-details-page[loading],
+checkout-success-page:not(:defined), checkout-success-page[loading],
+not-found-page:not(:defined), not-found-page[loading],
+admin-page:not(:defined), admin-page[loading],
+orders-page:not(:defined), orders-page[loading],
+auth-page:not(:defined), auth-page[loading] {
+    opacity: 0;
+    transition: opacity 0.2s ease-in;
+}
+
+#hamburger-menu {
+    display: none; 
+}
+
+@media (max-width: 768px) {
+    #hamburger-menu {
+        display: flex;
+    }
+
+    header {
+        padding: 12px 16px;
+    }
+
+    .logo-texto {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .logo-texto h2 {
+        font-size: 0.9rem;
+    }
+
+    .menu {
+        gap: 12px;
+    }
+
+    .menu a {
+        margin-left: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .menu a:active, .cart-button:active, .logo-texto img:active {
+        transform: scale(0.96);
+        opacity: 0.75;
+    }
+
+    .menu a:hover {
+        color: white;
+    }
+
+    .cart-button {
+        width: 48px;
+        height: 48px;
+    }
+
+    .cart-button img {
+        width: 28px;
+    }
+
+    main {
+        padding-top: 72px;
+    }
+
+    .desktop-links {
+        display: none;
+    }
+
+    .hamburger-btn {
+        display: flex;
+    }
+
+    .hamburger-btn span {
+        pointer-events: none;
+    }
+}
+
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast-msg {
+    background: white;
+    color: var(--text-main, #1e293b);
+    padding: 12px 20px;
+    border-radius: 16px;
+    border: 1px solid #d1d5db; 
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 14px 35px -12px rgba(0, 0, 0, 0.2), 0 4px 8px -4px rgba(0, 0, 0, 0.1);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+}
+
+.toast-msg.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0; 
+}
+
+.toast-msg.success .toast-icon {
+    color: #1d4ed8; 
+}
+
+.toast-msg.error .toast-icon {
+    color: #ef4444; 
+}
+
+.toast-msg.info .toast-icon {
+    color: #1e40af; 
+}
+
+@media (max-width: 768px) {
+    #toast-container {
+        bottom: 24px; left: 16px; right: 16px;
+        align-items: center;
+    }
+    .toast-msg {
+        width: 100%; box-sizing: border-box; justify-content: start;
+        transform: translateY(120%);
+    }
+    .toast-msg.show { transform: translateY(0); }
+}
+
+:focus-visible {
+    outline: 3px solid var(--primary, #1d4ed8);
+    outline-offset: 3px;
+    border-radius: 4px;
+    transition: outline-offset 0.1s ease;
+}
+
+a:focus-visible, button:focus-visible {
+    outline-offset: 4px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+header a:focus-visible, 
+header button:focus-visible {
+    outline-color: #ffffff;
+}
+
+.reset-demo-btn {
+    margin-top: 20px;
+    background: transparent;
+    border: 1px solid #9ca3af;
+    color: #6b7280;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+
+.reset-demo-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #6b7280;
+}
+
+.reset-demo-btn:active {
+    transform: scale(0.96);
+}

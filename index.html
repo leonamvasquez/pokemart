@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>PokéMart</title>
+    <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer type="module"></script>
+</head>
+
+<body>
+    <header>
+        <a href="/" data-link class="logo-texto" aria-label="PokéMart Home">
+            <h1><img src="images/logo.svg" width="50" alt=""></h1>
+            <h2>PokéMart</h2>
+        </a>
+        <nav class="menu">
+            <div class="desktop-links" id="desktop-links"></div>
+            
+            <a href="/cart" data-link class="cart-button" aria-label="Ver Carrinho">
+                <img src="images/shopping-cart.svg" alt="Carrinho">
+                <span id="cart-badge" hidden>0</span>
+            </a>
+
+            <button id="hamburger-menu" class="hamburger-btn" aria-label="Abrir Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+    <div id="menu-overlay"></div>
+    <nav id="mobile-menu" class="drawer">
+        <div class="drawer-header">
+            <span>Menu</span>
+            <button id="close-menu" aria-label="Fechar menu">×</button>
+        </div>
+        <ul id="menu-links">
+            </ul>
+    </nav>
+
+    <main id="app-viewport">
+    </main>
+    
+    <footer>
+        <div class="footer-container">
+            <p>Qualidade total em itens para Treinadores.</p>
+            <p>Projeto de estudo. Não oficial.</p>
+            <p class="slogan">Pokémon é uma marca registrada da Nintendo, Game Freak e The Pokémon Company.</p>
+            <button id="reset-app-btn" class="reset-demo-btn">
+                ↻ Resetar Dados do Demo
+            </button>
+        </div>
+    </footer>
+
+    <template id="items-page-template">
+        <div class="items-page">
+            <header class="items-intro">
+                <h2 class="items-intro-title">Bem-vindo ao PokéMart</h2>
+                <p class="items-intro-subtitle">
+                    Tudo o que você precisa para se preparar para sua jornada Pokémon.
+                </p>
+            </header>
+
+            <div class="layout">
+
+            <aside class="categories">
+                <h3 class="categories-title">Categorias</h3>
+
+                <ul class="categories-list" id="categories-list">
+                </ul>
+
+                <p class="categories-hint">
+                Clique em uma categoria para filtrar os itens.
+                </p>
+            </aside>
+
+            <section class="products">
+
+                <div class="products-header">
+                <h3 id="products-title">Todos os itens</h3>
+
+                <div class="products-controls">
+                    <input
+                    type="text"
+                    placeholder="Buscar item..."
+                    id="search-input"
+                    />
+
+                    <select id="sort-select">
+                        <option value="">Ordenar</option>
+                        <option value="price-asc">Menor preço</option>
+                        <option value="price-desc">Maior preço</option>
+                        <option value="name-asc">A–Z</option>
+                        <option value="name-desc">Z-A</option>
+                    </select>
+                </div>
+                </div>
+
+                <div class="products-grid" id="items-grid">
+                </div>
+
+                <div id="load-more-container" class="load-more-wrapper">
+                </div>
+            </section>
+
+            </div>
+
+        </div>
+    </template>
+
+    <template id="item-details-page-template">
+        <section class="details">
+            <a class="back-link" href="/" data-link aria-label="Voltar para a loja">&lt; Voltar</a>
+
+            <div class="card">
+            <div class="icon">
+                <img id="item-image" alt="">
+            </div>
+
+            <div class="info">
+                <h2 id="item-name"></h2>
+                <p id="item-desc"></p>
+
+                <div class="bottom">
+                <div id="item-price"></div>
+                <button id="add-btn">Adicionar</button>
+                </div>
+            </div>
+            </div>
+        </section>
+    </template>
+
+    <template id="cart-page-template">
+        <div class="cart-page">
+            <a class="back-link" href="/" data-link aria-label="Voltar para a loja">&lt; Voltar</a>
+            <h2 class="title">Seu Carrinho</h2>
+
+            <div class="layout">
+            <section class="items">
+                <ul class="items-list" id="cart-items"></ul>
+
+                <div class="empty" id="cart-empty" hidden>
+                <p>Você ainda não escolheu nenhum item para sua jornada.</p>
+                <a class="back" href="/" data-link>Voltar para a loja</a>
+                </div>
+            </section>
+
+            <aside class="summary">
+                <h3>Resumo da Compra</h3>
+
+                <div class="line">
+                <span>Subtotal</span>
+                <strong id="subtotal">₽ 0</strong>
+                </div>
+
+                <div class="line">
+                <span>Taxa de Envio</span>
+                <strong class="free" id="shipping">Grátis</strong>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="total">
+                <span>Total</span>
+                <strong id="total">₽ 0</strong>
+                </div>
+
+                <button class="checkout" id="checkout-btn" type="button" disabled>
+                Finalizar Compra
+                </button>
+            </aside>
+            </div>
+        </div>
+    </template>
+
+    <template id="checkout-success-template">
+        <main class="wrap">
+            <section class="card" role="status" aria-live="polite">
+            <div class="check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="check-icon">
+                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </div>
+
+            <h2 class="title" id="success-title">Compra Concluída!</h2>
+            <p class="subtitle">Seus itens foram enviados para o seu PC.</p>
+
+            <a class="btn" href="/" data-link>Voltar para a Loja</a>
+            </section>
+        </main>
+    </template>
+
+    <template id="auth-page-template">
+        <div class="auth-page">
+            <div class="auth-card">
+                <h2 id="auth-title">Bem-vindo de volta</h2>
+                <p id="auth-subtitle">Entre com sua conta para salvar sua jornada.</p>
+
+                <form id="auth-form">
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" placeholder="exemplo@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-group" id="confirm-password-group" hidden>
+                        <label for="confirm-password">Confirmar Senha</label>
+                        <input type="password" id="confirm-password" placeholder="••••••••">
+                    </div>
+
+                    <p id="error-message" style="color: #ef4444; font-size: 12px; margin-top: -8px; margin-bottom: 16px; text-align: center;" hidden></p>
+                    
+                    <div id="demo-login-area" class="demo-login-container">
+                        <p>Acesso rápido para avaliação:</p>
+                        <button type="button" id="demo-admin-btn" class="auth-btn demo-btn">Entrar como Admin</button>
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="auth-submit-btn">Entrar</button>
+                </form>
+
+                <div class="auth-footer">
+                    <span id="toggle-text">Ainda não tem uma conta?</span>
+                    <button id="toggle-auth-mode">Cadastre-se</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="not-found-page-template">
+        <section class="wrap">
+            <h2>404 — Página não encontrada</h2>
+            <p>A página que você tentou acessar não existe ou foi movida.</p>
+            <a href="/" data-link>Voltar para a PokéMart</a>
+        </section>
+    </template>
+
+    <template id="admin-page-template">
+        <div class="admin-page">
+            <header>
+                <h2>Painel Administrativo</h2>
+                <span class="subtitle">Gerencie o estoque e visualize métricas do PokéMart.</span>
+            </header>
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total de Itens</div>
+                    <div class="stat-value" id="total-items">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Valor em Estoque</div>
+                    <div class="stat-value" id="total-value">₽ 0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Categorias</div>
+                    <div class="stat-value" id="total-cats">0</div>
+                </div>
+            </section>
+            <section class="admin-controls">
+                <input type="text" id="admin-search" placeholder="Buscar por nome ou ID..." autocomplete="off">
+                <div id="admin-categories" class="categories-wrapper">
+                    </div>
+            </section>
+
+            <section class="table-container">
+                <div class="table-header">
+                    <h3>Inventário</h3>
+                    <button class="btn-add">+ Novo Item</button>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imagem</th>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Status</th>
+                            <th>Estoque</th>
+                            <th>Preço</th>
+                            <th class="actions-cell">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-list">
+                        </tbody>
+                </table>
+            </section>
+            <div id="product-modal" class="modal-overlay" hidden>
+                <div class="modal-content">
+                    <header class="modal-header">
+                        <h3 id="modal-title">Novo Item</h3>
+                        <button class="modal-close" id="modal-close-btn" aria-label="Fechar formulário">&times;</button>
+                    </header>
+                    
+                    <form id="product-form">
+                        <input type="hidden" id="edit-id"> <div class="form-group">
+                            <label for="p-name">Nome do Item</label>
+                            <input type="text" id="p-name" required placeholder="Ex: Master Ball">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="p-price">Preço (₽)</label>
+                                <input type="number" id="p-price" required min="0.01" step="0.01" placeholder="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="p-stock">Estoque</label>
+                                <input type="number" id="p-stock" required min="0" placeholder="10">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="p-category">Categoria</label>
+                            <select id="p-category" required>
+                                <option value="Poké Balls">Poké Balls</option>
+                                <option value="Itens de Cura">Itens de Cura</option>
+                                <option value="Berries">Berries</option>
+                                <option value="Itens de Batalha">Itens de Batalha</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="p-image">URL da Imagem</label>
+                            <input type="url" id="p-image" placeholder="Deixe em branco para usar a imagem padrão">
+                            <small style="color: #6b7280; font-size: 11px;">Recomendado: Imagens transparentes (PNG) da PokeAPI.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="p-desc">Descrição</label>
+                            <textarea id="p-desc" rows="3" required placeholder="Descreva o item..."></textarea>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancel" id="btn-cancel">Cancelar</button>
+                            <button type="submit" class="btn-save">Salvar Item</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="orders-page-template">
+        <div class="orders-page">
+            <header class="orders-header">
+                <h2 class="orders-title">Meus Pedidos</h2>
+                <p class="orders-subtitle">Acompanhe seu histórico de compras para a jornada Pokémon.</p>
+            </header>
+
+            <div id="orders-list" class="orders-list">
+                </div>
+
+            <div id="orders-empty" class="orders-empty" hidden>
+                <div class="empty-icon">📦</div>
+                <h3>Nenhum pedido encontrado</h3>
+                <p>Você ainda não realizou nenhuma compra na nossa loja.</p>
+                <a href="/" data-link class="btn-primary">Começar a comprar</a>
+            </div>
+        </div>
+    </template>
+</body>
+</html>

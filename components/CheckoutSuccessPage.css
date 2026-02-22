@@ -1,0 +1,173 @@
+:host {
+    --font-main: 'Inter', sans-serif;
+    --font-pixel: 'Press Start 2P', cursive;
+    --primary: #1d4ed8;
+    --primary-bright: #2563eb;
+    --success: #22c55e;
+    --success-bg: #dcfce7;
+    --text-muted: #6b7280;
+    --accent-yellow: #facc15;
+}
+
+.wrap {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 20px;
+    min-height: 70vh;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-main);
+}
+
+.card {
+    width: min(860px, 100%);
+    background: #ffffff;
+    border: 3px solid var(--accent-yellow);
+    border-radius: 22px;
+    padding: 44px 26px;
+    text-align: center;
+    box-shadow: 0 18px 38px -22px rgba(0,0,0,0.35);
+
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+}
+
+.card.animate-in {
+    animation: card-in 420ms ease-out forwards;
+}
+
+.check {
+    width: 104px;
+    height: 104px;
+    margin: 0 auto 18px;
+    border-radius: 999px;
+    background: var(--success-bg);
+    display: grid;
+    place-items: center;
+    transform: scale(0.7);
+    opacity: 0;
+}
+
+.card.animate-in .check {
+    animation: pop 420ms 160ms cubic-bezier(.2,1.2,.2,1) forwards;
+}
+
+.check-icon {
+    width: 54px;
+    height: 54px;
+    color: var(--success);
+}
+
+.title {
+    margin: 0;
+    font-family: var(--font-pixel);
+    font-size: 26px;
+    line-height: 1.2;
+    color: var(--primary);
+    opacity: 0;
+    transform: translateY(6px);
+}
+
+.card.animate-in .title {
+    animation: fade-up 300ms 360ms ease-out forwards;
+}
+
+.subtitle {
+    margin: 14px auto 0;
+    max-width: 520px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(6px);
+}
+
+.card.animate-in .subtitle {
+    animation: fade-up 300ms 440ms ease-out forwards;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: var(--primary-bright);
+    color: #fff;
+    font-weight: 900;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.card.animate-in .btn {
+    animation: fade-up 300ms 520ms ease-out forwards;
+}
+
+.btn:hover { background: var(--primary); }
+.btn:active { transform: translateY(1px) !important; }
+
+@keyframes card-in {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pop {
+    60% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fade-up {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .wrap {
+        margin: 16px auto;
+        padding: 0 16px;
+        min-height: calc(100vh - 72px);
+    }
+
+    .card {
+        padding: 28px 18px;
+        border-radius: 18px;
+        box-sizing: border-box;
+    }
+
+    .check { width: 84px; height: 84px; margin-bottom: 14px; }
+    .check-icon { width: 42px; height: 42px; }
+
+    .title { font-size: 18px; }
+    .subtitle { font-size: 13px; margin-top: 10px; }
+
+    .btn {
+        width: 100%;
+        padding: 16px;
+        font-size: 14px;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active {
+        background: var(--primary) !important;
+        transform: scale(0.98) !important;
+    }
+
+    .btn:hover { background: var(--primary-bright); transform: none; }
+}
+
+:focus-visible {
+    outline: 3px solid var(--primary, #1d4ed8);
+    outline-offset: 3px;
+    border-radius: 4px;
+    transition: outline-offset 0.1s ease;
+}
+
+a:focus-visible, 
+button:focus-visible, 
+.btn:focus-visible {
+    outline-offset: 4px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}

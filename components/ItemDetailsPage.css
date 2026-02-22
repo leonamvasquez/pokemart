@@ -1,0 +1,234 @@
+:host {
+    --primary: #1D4ED8;
+    --primary-dark: #1E40AF;
+    --white: #ffffff;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --bg-icon: #eff6ff;
+    --border-light: #e5e7eb;
+    --disabled-bg: #bdc3c7;
+    --disabled-text: #7f8c8d;
+
+    --font-main: 'Inter', sans-serif;
+    --font-pixel: 'Press Start 2P', cursive;
+}
+
+.details {
+    max-width: 600px;
+    margin: 24px auto;
+    padding: 0 20px;
+    font-family: var(--font-main);
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    text-decoration: none;
+    color: var(--primary);
+    font-weight: 700;
+    transition: transform 0.1s ease;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 20px;
+    background: var(--bg-icon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.icon img {
+    width: 50px;
+    height: auto;
+}
+
+.info h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-main);
+}
+
+.info p {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.bottom {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+#item-price {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text-main);
+}
+
+#add-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: var(--primary);
+    color: var(--white);
+    font-weight: 800;
+    transition: transform 0.1s ease, background 0.1s ease;
+}
+
+#add-btn:hover {
+    background: var(--primary-dark);
+}
+
+#add-btn:active {
+    transform: translateY(2px);
+}
+
+#add-btn:disabled {
+    background-color: var(--disabled-bg); 
+    color: var(--disabled-text);           
+    border-color: var(--disabled-bg);
+    cursor: not-allowed;
+    filter: none;             
+    box-shadow: none;         
+    transform: none !important;
+}
+
+#add-btn:disabled:hover {
+    background-color: var(--disabled-bg);
+}
+
+@media (max-width: 768px) {
+    .back-link, #add-btn {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .back-link:active {
+        transform: scale(0.92);
+    }
+
+    .back-link:hover {
+        text-decoration: none;
+    }
+
+    #add-btn:hover {
+        background: var(--primary);
+        transform: none;
+    }
+
+    #add-btn:active {
+        background: var(--primary-dark);
+        transform: scale(0.95);
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 8px;
+}
+
+.skeleton-card.card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    pointer-events: none;
+    width: 100%;
+    min-height: 380px;
+}
+
+.skeleton-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.skeleton-name {
+    width: 180px;
+    height: 24px;
+    margin-bottom: 12px;
+}
+
+.skeleton-text {
+    width: 250px;
+    height: 14px;
+    margin-bottom: 6px;
+}
+
+
+.skeleton-footer {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.skeleton-price {
+    width: 80px;
+    height: 20px;
+}
+
+.skeleton-button {
+    width: 140px;
+    height: 45px;
+    border-radius: 12px;
+}
+
+:focus-visible {
+    outline: 3px solid var(--primary, #1D4ED8);
+    outline-offset: 3px;
+    border-radius: 4px;
+    transition: outline-offset 0.1s ease;
+}
+
+a:focus-visible, 
+button:focus-visible {
+    outline-offset: 4px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+#add-btn:focus-visible {
+    outline: 3px solid var(--primary, #1D4ED8) !important;
+    outline-offset: 4px;
+}
