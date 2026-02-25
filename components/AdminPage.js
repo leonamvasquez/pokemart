@@ -2,6 +2,7 @@ import { BasePage } from "./BasePage.js";
 import { loadItems } from "../services/Items.js";
 import { normalizeText, formatPrice } from "../services/Text.js";
 import { Toast } from "../services/Toast.js";
+import API from "../services/API.js";
 
 export class AdminPage extends BasePage {
     constructor() {
@@ -51,7 +52,6 @@ export class AdminPage extends BasePage {
             }
         });
 
-        const modal = $("#product-modal");
         const form = $("#product-form");
 
         $(".btn-add")?.addEventListener("click", () => {
@@ -75,14 +75,14 @@ export class AdminPage extends BasePage {
             }
 
             if (btnEdit) {
-                const id = Number(btnEdit.dataset.id);
-                const item = app.store.items.find(i => i.id === id);
+                const idStr = String(btnEdit.dataset.id);
+                const item = app.store.items.find(i => String(i.id) === idStr);
                 if (item) this.openModal(item);
             }
 
             if (btnToggle) {
-                const id = Number(btnToggle.dataset.id);
-                this.handleToggleStatus(id);
+                const idStr = String(btnToggle.dataset.id);
+                this.handleToggleStatus(idStr);
             }
 
             if (e.target.closest("#btn-prev-page")) {
@@ -112,8 +112,12 @@ export class AdminPage extends BasePage {
         const modal = $("#product-modal");
         const title = $("#modal-title");
         const editIdInput = $("#edit-id");
+        const submitBtn = $("#product-form button[type='submit']");
 
         if (!modal) return;
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Salvar Item";
 
         if (item) {
             title.textContent = "Editar Item";
@@ -145,9 +149,10 @@ export class AdminPage extends BasePage {
         const idStr = $("#edit-id").value;
         const stockVal = Number($("#p-stock").value);
         const priceVal = Number($("#p-price").value);
+        const submitBtn = $("#product-form button[type='submit']");
         
         const inputImageVal = $("#p-image").value.trim();
-        const finalImageVal = inputImageVal !== "" ? inputImageVal : "/images/missingno.png";
+        const finalImageVal = inputImageVal !== "" ? inputImageVal : "https://raw.githubusercontent.com/mateusfilpo/pokemart/main/images/missingno.png";
 
         if (priceVal <= 0) {
             Toast.show("O preço do item deve ser maior que zero.", "error");
@@ -159,51 +164,69 @@ export class AdminPage extends BasePage {
             return;
         }
 
-        const newItem = {
-            id: idStr ? Number(idStr) : Date.now(),
+        const itemPayload = {
             name: $("#p-name").value,
             price: priceVal,
             stock: stockVal,
             category: $("#p-category").value,
             image: finalImageVal,
             description: $("#p-desc").value,
-            deleted: idStr ? (app.store.items.find(i => i.id == idStr)?.deleted || false) : false
+            deleted: idStr ? (app.store.items.find(i => String(i.id) === String(idStr))?.deleted || false) : false
         };
 
-        let items = [...(app.store.items || [])];
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Salvando...";
 
-        if (idStr) {
-            const index = items.findIndex(i => i.id === newItem.id);
-            if (index > -1) items[index] = newItem;
-        } else {
-            items.push(newItem);
+        try {
+            if (idStr) {
+                const updatedItem = await API.updateItem(idStr, itemPayload);
+                const index = app.store.items.findIndex(i => String(i.id) === String(idStr));
+                if (index > -1) app.store.items[index] = updatedItem;
+                
+                Toast.show("Item atualizado com sucesso!", "success");
+            } else {
+                const createdItem = await API.createItem(itemPayload);
+                app.store.items.push(createdItem);
+                
+                Toast.show("Item criado com sucesso!", "success");
+            }
+
+            this.render();
+            this.closeModal();
+
+        } catch (error) {
+            Toast.show("Erro ao salvar item no banco de dados.", "error");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Salvar Item";
         }
-
-        this.saveItemsToStorage(items);
-        this.closeModal();
-        Toast.show(idStr ? "Item atualizado!" : "Item criado com sucesso!", "success");
     }
 
-    handleToggleStatus(id) {
-        const items = [...app.store.items];
-        const itemIndex = items.findIndex(i => i.id === id);
+   async handleToggleStatus(id) {
+        const items = app.store.items || [];
+        const itemIndex = items.findIndex(i => String(i.id) === String(id));
 
         if (itemIndex > -1) {
             const item = items[itemIndex];
-            item.deleted = !item.deleted;
-            this.saveItemsToStorage(items);
+            const isCurrentlyDeleted = item.deleted === true;
+            const newStatus = !isCurrentlyDeleted;
 
-            if (item.deleted) {
-                Toast.show(`Venda de ${item.name} pausada.`, "info"); 
-            } else {
-                Toast.show(`${item.name} reativado para venda!`, "success");
+            try {
+                await API.toggleStatus(id, newStatus);
+                
+                item.deleted = newStatus;
+                
+                if (newStatus) {
+                    Toast.show(`Venda de ${item.name} pausada.`, "info"); 
+                } else {
+                    Toast.show(`${item.name} reativado para venda!`, "success");
+                }
+
+                this.render();
+
+            } catch (error) {
+                Toast.show("Erro ao alterar status do item.", "error");
             }
         }
-    }
-
-    saveItemsToStorage(items) {
-        app.store.items = items;
-        localStorage.setItem("pokemart-items", JSON.stringify(items));
     }
 
     render() {

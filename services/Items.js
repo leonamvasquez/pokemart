@@ -10,7 +10,7 @@ export async function loadItems() {
             ? data.map(item => ({ 
                 ...item, 
                 stock: item.stock ?? 10,
-                category: item.categoryName
+                category: item.category
             })) 
             : [];
         

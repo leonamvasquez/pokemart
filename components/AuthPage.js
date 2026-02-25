@@ -72,7 +72,7 @@ export class AuthPage extends BasePage {
 
         if (!adminUser) {
             adminUser = {
-                id: "sandbox-admin-123",
+                id: "ef9a58ea-6c5d-418a-a598-dfb293e7e77d",
                 email: adminEmail,
                 name: "Professor Carvalho",
                 cart: [],

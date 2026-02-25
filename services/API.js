@@ -79,6 +79,62 @@ const API = {
             console.error("Falha no cadastro:", error);
             return null;
         }
+    },
+
+    createItem: async (itemData) => {
+        try {
+            const response = await fetch(`${BASE_URL}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(itemData)
+            });
+            if (!response.ok) throw new Error("Erro ao criar item");
+            return await response.json();
+        } catch (error) {
+            console.error("Falha ao criar item:", error);
+            throw error;
+        }
+    },
+
+    updateItem: async (id, itemData) => {
+        try {
+            const response = await fetch(`${BASE_URL}/items/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(itemData)
+            });
+            if (!response.ok) throw new Error("Erro ao atualizar item");
+            return await response.json();
+        } catch (error) {
+            console.error("Falha ao atualizar item:", error);
+            throw error;
+        }
+    },
+
+    deleteItem: async (id) => {
+        try {
+            const response = await fetch(`${BASE_URL}/items/${id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error("Erro ao deletar item");
+            return true; // Status 204 No Content não retorna JSON
+        } catch (error) {
+            console.error("Falha ao deletar item:", error);
+            throw error;
+        }
+    },
+
+    toggleStatus: async (id, deletedStatus) => {
+        try {
+            const response = await fetch(`${BASE_URL}/items/${id}/status?deleted=${deletedStatus}`, {
+                method: 'PATCH'
+            });
+            if (!response.ok) throw new Error("Erro ao mudar status");
+            return true;
+        } catch (error) {
+            console.error("Falha ao mudar status:", error);
+            throw error;
+        }
     }
 };
 

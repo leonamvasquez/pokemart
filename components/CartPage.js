@@ -59,6 +59,7 @@ export class CartPage extends BasePage {
                 }))
             };
 
+            console.log("User id: " + user.id);
             await API.placeOrder(checkoutPayload);
 
             app.store.cart = [];

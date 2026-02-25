@@ -86,12 +86,15 @@ export class OrdersPage extends BasePage {
 
         if (!listContainer || !emptyContainer) return;
 
+        listContainer.innerHTML = "";
+
         if (!this.orders || this.orders.length === 0) {
             listContainer.hidden = true;
             emptyContainer.hidden = false;
             return;
         }
 
+        // Se chegou aqui, existem pedidos
         listContainer.hidden = false;
         emptyContainer.hidden = true;
 
