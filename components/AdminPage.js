@@ -1,16 +1,14 @@
 import { BasePage } from "./BasePage.js";
 import { loadItems } from "../services/Items.js";
-import { normalizeText, formatPrice } from "../services/Text.js";
+import { formatPrice } from "../services/Text.js";
 import { Toast } from "../services/Toast.js";
 import API from "../services/API.js";
 
 export class AdminPage extends BasePage {
     constructor() {
         super();
-        this.searchQuery = "";
-        this.selectedCategory = "";
-        this.currentPage = 1;
         this.itemsPerPage = 10;
+        this.debounceTimeout = null;
     }
 
     async connectedCallback() {
@@ -22,33 +20,39 @@ export class AdminPage extends BasePage {
 
         await this.loadInfrastructure("/components/AdminPage.css", "admin-page-template");
 
-        this.renderSkeletons();
-
-        try {
-            await loadItems();
-            this.setupEventListeners();
-            this.render();
-        } catch (error) {
-            console.error("Erro ao carregar AdminPage:", error);
-        } 
+        this.setupEventListeners();
+        
+        this.render(); 
+        
+        await loadItems(0, this.itemsPerPage, true, false); 
     }
 
     setupEventListeners() {
         const $ = (s) => this.root.querySelector(s);
 
-        $("#admin-search")?.addEventListener("input", (e) => {
-            this.searchQuery = e.target.value.trim();
-            this.currentPage = 1;
-            this.renderTableWithFilters();
+        this.root.addEventListener("input", (e) => {
+            if (e.target.id === "admin-search") {
+                const query = e.target.value.trim();
+                if (query === app.store.searchQuery) return;
+                
+                clearTimeout(this.debounceTimeout);
+                this.debounceTimeout = setTimeout(async () => {
+                    app.store.items = null;
+                    app.store.searchQuery = query;
+                    await loadItems(0, this.itemsPerPage, true, false);
+                }, 500);
+            }
         });
 
-        $("#admin-categories")?.addEventListener("click", (e) => {
+        $("#admin-categories")?.addEventListener("click", async (e) => {
             const btn = e.target.closest(".cat-chip");
             if (btn) {
-                const newCat = btn.dataset.category;
-                this.selectedCategory = (this.selectedCategory === newCat) ? "" : newCat;
-                this.currentPage = 1;
-                this.renderTableWithFilters();
+                const newCat = btn.dataset.category || "";
+                
+                app.store.selectedCategory = (app.store.selectedCategory === newCat) ? "" : newCat;
+                app.store.items = null;
+                
+                await loadItems(0, this.itemsPerPage, true, false);
             }
         });
 
@@ -66,7 +70,7 @@ export class AdminPage extends BasePage {
             this.handleSaveItem();
         });
 
-        this.root.addEventListener("click", (e) => {
+        this.root.addEventListener("click", async (e) => {
             const btnEdit = e.target.closest(".edit");
             const btnToggle = e.target.closest(".toggle-status");
 
@@ -86,12 +90,14 @@ export class AdminPage extends BasePage {
             }
 
             if (e.target.closest("#btn-prev-page")) {
-                this.currentPage--;
-                this.renderTableWithFilters();
+                const targetPage = app.store.pagination.currentPage - 1;
+                app.store.items = null;
+                await loadItems(targetPage, this.itemsPerPage, true, false);
             }
             if (e.target.closest("#btn-next-page")) {
-                this.currentPage++;
-                this.renderTableWithFilters();
+                const targetPage = app.store.pagination.currentPage + 1;
+                app.store.items = null;
+                await loadItems(targetPage, this.itemsPerPage, true, false);
             }
         });
 
@@ -132,7 +138,6 @@ export class AdminPage extends BasePage {
             title.textContent = "Novo Item";
             editIdInput.value = "";
             $("#product-form").reset();
-            
             $("#p-image").value = ""; 
         }
 
@@ -179,20 +184,16 @@ export class AdminPage extends BasePage {
 
         try {
             if (idStr) {
-                const updatedItem = await API.updateItem(idStr, itemPayload);
-                const index = app.store.items.findIndex(i => String(i.id) === String(idStr));
-                if (index > -1) app.store.items[index] = updatedItem;
-                
+                await API.updateItem(idStr, itemPayload);
                 Toast.show("Item atualizado com sucesso!", "success");
             } else {
-                const createdItem = await API.createItem(itemPayload);
-                app.store.items.push(createdItem);
-                
+                await API.createItem(itemPayload);
                 Toast.show("Item criado com sucesso!", "success");
             }
 
-            this.render();
             this.closeModal();
+            
+            await loadItems(app.store.pagination.currentPage, this.itemsPerPage, true, false);
 
         } catch (error) {
             Toast.show("Erro ao salvar item no banco de dados.", "error");
@@ -238,25 +239,27 @@ export class AdminPage extends BasePage {
         }
 
         const items = app.store.items;
-        this.updateStats(items);
-        this.renderTableWithFilters();
+        this.updateStats();
+        this.renderCategories();
+        this.renderTable(items);
+        this.syncUIWithStore();
+    }
+
+    syncUIWithStore() {
+        const searchInput = this.root.querySelector("#admin-search");
+        if (searchInput && app.store.searchQuery !== undefined) {
+            const isFocused = (this.root.activeElement === searchInput) || (document.activeElement === searchInput);
+            if (!isFocused && searchInput.value !== app.store.searchQuery) {
+                searchInput.value = app.store.searchQuery;
+            }
+        }
     }
 
     renderSkeletons() {
-        const stats = {
-            total: this.root.querySelector("#total-items"),
-            value: this.root.querySelector("#total-value"),
-            cats: this.root.querySelector("#total-cats")
-        };
-
-        if (stats.total) stats.total.innerHTML = '<div class="skeleton" style="width: 40px; height: 28px; margin: 0 auto; border-radius: 8px;"></div>';
-        if (stats.value) stats.value.innerHTML = '<div class="skeleton" style="width: 100px; height: 28px; margin: 0 auto; border-radius: 8px;"></div>';
-        if (stats.cats) stats.cats.innerHTML = '<div class="skeleton" style="width: 30px; height: 28px; margin: 0 auto; border-radius: 8px;"></div>';
-
         const tbody = this.root.querySelector("#inventory-list");
         if (!tbody) return;
 
-        tbody.innerHTML = Array(5).fill(0).map(() => `
+        tbody.innerHTML = Array(this.itemsPerPage).fill(0).map(() => `
             <tr style="pointer-events: none; border-bottom: 1px solid var(--border-light);">
                 <td style="padding: 12px;"><div class="skeleton" style="width: 40px; height: 40px; border-radius: 8px;"></div></td>
                 <td style="padding: 12px;"><div class="skeleton" style="width: 140px; height: 16px;"></div></td>
@@ -274,71 +277,36 @@ export class AdminPage extends BasePage {
         `).join("");
     }
 
-    renderTableWithFilters() {
-        const items = app.store.items || [];
-        const filteredItems = this.applyFilters(items);
-        this.renderCategories(items);
-        this.renderTable(filteredItems);
-    }
 
-    applyFilters(items) {
-        let result = [...items];
-        
-        if (this.selectedCategory) {
-            result = result.filter(i => i.category === this.selectedCategory);
-        }
-        
-        if (this.searchQuery) {
-            const normalizedQuery = normalizeText(this.searchQuery);
-            result = result.filter(i => 
-                normalizeText(i.name).includes(normalizedQuery) || 
-                String(i.id).includes(normalizedQuery)
-            );
-        }
-        return result;
-    }
-
-    renderCategories(allItems) {
+    renderCategories() {
         const list = this.root.querySelector("#admin-categories");
         if (!list) return;
 
-        const counts = allItems.reduce((acc, item) => {
-            acc[item.category] = (acc[item.category] || 0) + 1;
-            return acc;
-        }, {});
-
+        const selected = app.store.selectedCategory ?? "";
+        const totalCount = app.store.pagination.totalElements || 0;
+        
         let html = `
-            <button class="cat-chip ${this.selectedCategory === "" ? 'active' : ''}" data-category="">
-                Todos <span class="count">${allItems.length}</span>
+            <button class="cat-chip ${selected === "" ? 'active' : ''}" data-category="">
+                Todos <span class="count">${totalCount}</span>
             </button>
         `;
 
-        html += Object.entries(counts).map(([name, count]) => `
-            <button class="cat-chip ${this.selectedCategory === name ? 'active' : ''}" data-category="${name}">
-                ${name} <span class="count">${count}</span>
+        const stats = app.store.categoryStats || [];
+        html += stats.map(stat => `
+            <button class="cat-chip ${selected === stat.category ? 'active' : ''}" data-category="${stat.category}">
+                ${stat.category} <span class="count">${stat.count}</span>
             </button>
         `).join("");
 
         list.innerHTML = html;
     }
 
-    updateStats(items) {
+    updateStats() {        
         const totalItemsEl = this.root.querySelector("#total-items");
-        const totalValueEl = this.root.querySelector("#total-value");
         const totalCatsEl = this.root.querySelector("#total-cats");
 
-        if (totalItemsEl) totalItemsEl.textContent = items.length;
-        
-        if (totalValueEl) {
-            const activeItems = items.filter(i => !i.deleted);
-            const totalValue = activeItems.reduce((acc, item) => acc + (item.price * (item.stock || 0)), 0);
-            totalValueEl.textContent = `₽ ${formatPrice(totalValue)}`;
-        }
-        
-        if (totalCatsEl) {
-            const categories = new Set(items.map(i => i.category));
-            totalCatsEl.textContent = categories.size;
-        }
+        if (totalItemsEl) totalItemsEl.textContent = app.store.pagination.totalElements || 0;
+        if (totalCatsEl) totalCatsEl.textContent = (app.store.categoryStats || []).length;
     }
 
     renderTable(items) {
@@ -346,19 +314,13 @@ export class AdminPage extends BasePage {
         const tableContainer = this.root.querySelector(".table-container");
         if (!tbody || !tableContainer) return;
 
-        const totalPages = Math.ceil(items.length / this.itemsPerPage) || 1;
-        if (this.currentPage > totalPages) this.currentPage = totalPages;
-
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        const paginatedItems = items.slice(start, start + this.itemsPerPage);
-
-        if (paginatedItems.length === 0) {
+        if (items.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 30px; color: #6b7280;">Nenhum item encontrado.</td></tr>`;
             this.renderPaginationUI(tableContainer, 1, 1);
             return;
         }
         
-        tbody.innerHTML = paginatedItems.map(item => {
+        tbody.innerHTML = items.map(item => {
             const isInactive = item.deleted === true;
             const isOutOfStock = item.stock === 0;
 
@@ -369,11 +331,11 @@ export class AdminPage extends BasePage {
             return `
             <tr class="${isInactive ? 'row-deleted' : ''}">
                 <td class="item-img-cell">
-                    <img src="${item.image}" alt="${item.name}" loading="lazy">
+                    <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/missingno.png';">
                 </td>
                 <td>
                     <div class="item-name-text">${item.name}</div>
-                    <div class="item-id-text">ID: ${item.id}</div>
+                    <div class="item-id-text" style="font-size: 10px;">ID: ${item.id}</div>
                 </td>
                 <td>
                     <span class="badge-cat">${item.category}</span>
@@ -404,7 +366,10 @@ export class AdminPage extends BasePage {
             </tr>
         `}).join("");
 
-        this.renderPaginationUI(tableContainer, this.currentPage, totalPages);
+        const currentPageNumber = app.store.pagination.currentPage + 1;
+        const totalPages = app.store.pagination.totalPages === 0 ? 1 : app.store.pagination.totalPages;
+        
+        this.renderPaginationUI(tableContainer, currentPageNumber, totalPages);
     }
 
     renderPaginationUI(container, current, total) {

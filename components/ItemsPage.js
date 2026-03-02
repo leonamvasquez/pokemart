@@ -2,36 +2,52 @@ import { BasePage } from "./BasePage.js";
 import { MAX_QTY } from "../services/Cart.js";
 import { loadItems } from "../services/Items.js";
 import { addToCart } from "../services/Cart.js";
-import { normalizeText, formatPrice } from "../services/Text.js";
+import { formatPrice } from "../services/Text.js";
 
 export class ItemsPage extends BasePage {
     constructor() {
        super();
-       this.limit = 9;
+       this.pageSize = 9;
     }
 
     async connectedCallback() {
         await this.loadInfrastructure("/components/ItemsPage.css", "items-page-template");
 
         this.setupEventListeners();
-        loadItems(); 
         
         this.render();
+        
+        await loadItems(0, this.pageSize, true, false); 
     }
 
     setupEventListeners() {
-        this.root.querySelector("#search-input")?.addEventListener("input", (e) => {
-            app.store.searchQuery = e.target.value.trim().toLowerCase();
-            this.limit = 9;
-            this.renderFilteredItems();
+        let searchTimeout;
+
+        this.root.addEventListener("input", (e) => {
+            if (e.target.id === "search-input") {
+                const query = e.target.value;
+                
+                if (query === app.store.searchQuery) return;
+                
+                clearTimeout(searchTimeout);
+                
+                searchTimeout = setTimeout(async () => {
+                    app.store.items = null; 
+                    app.store.searchQuery = query;
+                    await loadItems(0, this.pageSize, true, false);
+                }, 500);
+            }
         });
 
-        this.root.querySelector("#sort-select")?.addEventListener("change", (e) => {
-            app.store.sortBy = e.target.value;
-            this.renderFilteredItems();
+        this.root.addEventListener("change", (e) => {
+            if (e.target.id === "sort-select") {
+                app.store.items = null;
+                app.store.sortBy = e.target.value;
+                loadItems(0, this.pageSize, true, false);
+            }
         });
 
-        this.root.addEventListener("click", (e) => {
+        this.root.addEventListener("click", async (e) => {
             const addBtn = e.target.closest(".add-button");
             if (addBtn) {
                 e.preventDefault(); 
@@ -44,17 +60,24 @@ export class ItemsPage extends BasePage {
             if (catBtn) {
                 app.store.selectedCategory = catBtn.dataset.category ?? "";
                 app.store.searchQuery = "";
+                
                 const search = this.root.querySelector("#search-input");
                 if (search) search.value = "";
-                this.limit = 9;
-                this.render();
+                
+                app.store.items = null;
+                
+                await loadItems(0, this.pageSize, true, false);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
 
             if (e.target.id === "load-more-btn") {
-                this.limit += 9;
-                this.renderFilteredItems();
+                const nextPage = app.store.pagination.currentPage + 1;
+                const btn = e.target;
+                btn.disabled = true;
+                btn.textContent = "Buscando...";
+                
+                await loadItems(nextPage, this.pageSize, false, true);
             }
         });
 
@@ -77,11 +100,33 @@ export class ItemsPage extends BasePage {
 
         if (app.store.items.length === 0) {
             this.renderEmptyState();
+            this.renderCategories(); 
+            this.syncUIWithStore();
             return;
         }
 
         this.renderCategories();
         this.renderFilteredItems();
+        this.syncUIWithStore(); 
+    }
+
+    syncUIWithStore() {
+        const searchInput = this.root.querySelector("#search-input");
+        const sortSelect = this.root.querySelector("#sort-select");
+
+        if (searchInput && app.store.searchQuery !== undefined) {
+            const isFocused = (this.root.activeElement === searchInput) || (document.activeElement === searchInput);
+            
+            if (!isFocused && searchInput.value !== app.store.searchQuery) {
+                searchInput.value = app.store.searchQuery;
+            }
+        }
+
+        if (sortSelect && app.store.sortBy !== undefined) {
+            if (sortSelect.value !== app.store.sortBy) {
+                sortSelect.value = app.store.sortBy;
+            }
+        }
     }
 
     renderErrorState() {
@@ -90,21 +135,9 @@ export class ItemsPage extends BasePage {
 
         grid.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                <h3 style="font-family: var(--font-pixel); font-size: 12px; color: #ef4444;">
-                    Erro na PokéMart!
-                </h3>
-                <p style="color: var(--text-muted); margin: 15px 0;">
-                    Não conseguimos conectar ao Centro Pokémon. Verifique sua conexão.
-                </p>
-                <button id="retry-btn" style="
-                    background: var(--primary); 
-                    color: white; 
-                    border: none; 
-                    padding: 10px 20px; 
-                    border-radius: 8px; 
-                    cursor: pointer;
-                    font-weight: bold;
-                ">Tentar Novamente</button>
+                <h3 style="font-family: var(--font-pixel); font-size: 12px; color: #ef4444;">Erro na PokéMart!</h3>
+                <p style="color: var(--text-muted); margin: 15px 0;">Não conseguimos conectar ao Centro Pokémon. Verifique sua conexão.</p>
+                <button id="retry-btn" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Tentar Novamente</button>
             </div>
         `;
 
@@ -117,7 +150,7 @@ export class ItemsPage extends BasePage {
         const grid = this.root.querySelector("#items-grid");
         if (!grid) return;
 
-        const skeletons = Array(this.limit).fill(0).map(() => `
+        const skeletons = Array(this.pageSize).fill(0).map(() => `
             <div class="skeleton-card">
                 <div class="skeleton-img skeleton"></div>
                 <div class="skeleton-info">
@@ -137,10 +170,13 @@ export class ItemsPage extends BasePage {
 
     renderEmptyState() {
         const grid = this.root.querySelector("#items-grid");
+        const loadMoreContainer = this.root.querySelector("#load-more-container");
+        
         if (grid) {
-            grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-                Nenhum item disponível no momento.
-            </p>`;
+            grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Nenhum item disponível no momento.</p>`;
+        }
+        if (loadMoreContainer) {
+            loadMoreContainer.innerHTML = "";
         }
     }
 
@@ -148,18 +184,15 @@ export class ItemsPage extends BasePage {
         const list = this.root.querySelector("#categories-list");
         if (!list) return;
 
-        const items = app.store.items ?? [];
-        const categoryCounts = items.reduce((acc, item) => {
-            acc[item.category] = (acc[item.category] || 0) + 1;
-            return acc;
-        }, {});
-
         const selected = app.store.selectedCategory ?? "";
         this.updateTitle(selected);
 
-        let html = this.createCategoryItemHTML("", "Todos", items.length, selected === "");
-        html += Object.entries(categoryCounts)
-            .map(([name, count]) => this.createCategoryItemHTML(name, name, count, selected === name))
+        const totalCount = app.store.pagination.totalElements || 0;
+        let html = this.createCategoryItemHTML("", "Todos", totalCount, selected === "");
+        
+        const stats = app.store.categoryStats || [];
+        html += stats
+            .map(stat => this.createCategoryItemHTML(stat.category, stat.category, stat.count, selected === stat.category))
             .join("");
 
         list.innerHTML = html;
@@ -170,47 +203,16 @@ export class ItemsPage extends BasePage {
         const loadMoreContainer = this.root.querySelector("#load-more-container");
         if (!grid) return;
 
-        let filtered = this.applyFilters(app.store.items ?? []);
-        this.applySorting(filtered);
+        const itemsToRender = app.store.items ?? [];
 
-        const totalFiltered = filtered.length;
-        const itemsToShow = filtered.slice(0, this.limit);
-
-        grid.innerHTML = itemsToShow.map(item => this.createItemCardHTML(item)).join("");
+        grid.innerHTML = itemsToRender.map(item => this.createItemCardHTML(item)).join("");
         
         if (loadMoreContainer) {
-            loadMoreContainer.innerHTML = (this.limit < totalFiltered) 
+            const hasNext = app.store.pagination && app.store.pagination.hasNext;
+            loadMoreContainer.innerHTML = hasNext 
                 ? `<button id="load-more-btn">Carregar Mais</button>` 
                 : "";
         }
-    }
-
-    applyFilters(items) {
-        const activeItems = items.filter(i => !i.deleted);
-        const category = app.store.selectedCategory;
-        const query = app.store.searchQuery;
-
-        let result = category ? activeItems.filter(i => i.category === category) : [...activeItems];
-
-        if (query) {
-            const normalizedQuery = normalizeText(query);
-            result = result.filter(i => 
-                normalizeText(i.name).includes(normalizedQuery) || 
-                normalizeText(i.description).includes(normalizedQuery)
-            );
-        }
-        return result;
-    }
-
-    applySorting(items) {
-        const sort = app.store.sortBy;
-        const strategy = {
-            "price-asc": (a, b) => a.price - b.price,
-            "price-desc": (a, b) => b.price - a.price,
-            "name-asc": (a, b) => a.name.localeCompare(b.name),
-            "name-desc": (a, b) => b.name.localeCompare(a.name)
-        };
-        if (strategy[sort]) items.sort(strategy[sort]);
     }
 
     createCategoryItemHTML(id, label, count, isActive) {
@@ -241,7 +243,7 @@ export class ItemsPage extends BasePage {
             <a class="item-link" href="/item/${item.id}" data-link>
                 <article class="item-card">
                     <div class="item-icon">
-                        <img src="${item.image}" alt="${item.name}" loading="lazy" style="${isSoldOut ? 'filter: grayscale(1); opacity: 0.6;' : ''}">
+                        <img src="${item.image}" alt="${item.name}" loading="lazy" style="${isSoldOut ? 'filter: grayscale(1); opacity: 0.6;' : ''}" onerror="this.onerror=null; this.src='/images/missingno.png';">
                     </div>
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>

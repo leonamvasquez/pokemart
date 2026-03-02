@@ -1,4 +1,5 @@
 import { Toast } from "./Toast.js";
+import API from "./API.js";
 
 export const MAX_QTY = 10;
 
@@ -10,6 +11,30 @@ const normalizeQty = (qty) => {
     const n = Number(qty);
     return Number.isFinite(n) ? Math.floor(n) : null;
 };
+
+const syncTimeouts = {};
+
+async function syncWithServer(itemId, quantity) {
+    if (!app.store.user) return;
+
+    if (syncTimeouts[itemId]) {
+        clearTimeout(syncTimeouts[itemId]);
+    }
+
+    syncTimeouts[itemId] = setTimeout(async () => {
+        try {
+            const serverCart = await API.updateCartItem(itemId, quantity);
+            
+            app.store.cart = serverCart;
+            localStorage.setItem("pokemart-cart", JSON.stringify(app.store.cart));
+            
+            window.dispatchEvent(new CustomEvent("appcartchange"));
+            
+        } catch (error) {
+            console.warn("Trabalhando offline ou erro de rede no carrinho.");
+        }
+    }, 400); 
+}
 
 export function addToCart(itemId, qty = 1) {
     const id = normalizeId(itemId);
@@ -27,9 +52,7 @@ export function addToCart(itemId, qty = 1) {
     const index = cart.findIndex(item => String(item.itemId) === id);
 
     const currentQty = index > -1 ? cart[index].quantity : 0;
-
     const realLimit = Math.min(product.stock, MAX_QTY);
-
     let finalQty = currentQty + q;
 
     if (finalQty > realLimit) {
@@ -52,6 +75,7 @@ export function addToCart(itemId, qty = 1) {
     }
     
     saveCart();
+    syncWithServer(id, finalQty);
 
     Toast.show(`${product.name} adicionado ao carrinho!`, "success");
 }
@@ -65,6 +89,7 @@ export function removeFromCart(itemId) {
     );
     
     saveCart();
+    syncWithServer(id, 0);
 }
 
 export function setCartItemQuantity(itemId, qty) {
@@ -87,6 +112,7 @@ export function setCartItemQuantity(itemId, qty) {
     );
     
     saveCart();
+    syncWithServer(id, finalQty);
 }
 
 export const incrementCartItem = (id) => changeQty(id, 1);
@@ -105,5 +131,10 @@ export function getCartCount() {
 }
 
 function saveCart() {
-    localStorage.setItem("pokemart-cart", JSON.stringify(app.store.cart));
+    if (app.store.user) {
+        localStorage.setItem("pokemart-cart", JSON.stringify(app.store.cart));
+        localStorage.removeItem("pokemart-cart-anonymous");
+    } else {
+        localStorage.setItem("pokemart-cart-anonymous", JSON.stringify(app.store.cart));
+    }
 }

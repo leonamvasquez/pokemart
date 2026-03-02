@@ -1,29 +1,49 @@
 import API from "./API.js";
 
-export async function loadItems() {
-    if (app.store.items && app.store.items !== "ERROR" && app.store.items.length > 0) return;
+export async function loadItems(page = 0, size = 10, forceRefresh = false, append = false) {
+    if (!forceRefresh && app.store.items && app.store.items !== "ERROR" && app.store.items.length > 0 && !append && app.store.pagination.currentPage === page) return;
 
     try {
-        const data = await API.fetchItems();
+        const user = app.store.user;
         
-        const itemsMapped = Array.isArray(data) 
-            ? data.map(item => ({ 
-                ...item, 
-                stock: item.stock ?? 10,
-                category: item.category
-            })) 
-            : [];
-        
-        app.store.items = itemsMapped;
-        localStorage.setItem("pokemart-items", JSON.stringify(itemsMapped));
-    } catch (apiError) {
-        console.warn("API indisponível. Tentando usar cache local...", apiError);
-        const localItems = localStorage.getItem("pokemart-items");
-        if (localItems) {
-            app.store.items = JSON.parse(localItems);
+        const cat = app.store.selectedCategory || "";
+        const search = app.store.searchQuery || "";
+        const sort = app.store.sortBy || "price-asc";
+
+        let response;
+        if (user && user.role === "ADMIN") {
+            response = await API.fetchAdminItems(page, size, cat, search, sort);
         } else {
-            app.store.items = "ERROR";
+            response = await API.fetchItems(page, size, cat, search, sort);
         }
+        
+        if (!append) {
+            app.store.categoryStats = await API.fetchCategoryStats(search);
+        }
+
+        const itemsArray = Array.isArray(response.data) ? response.data : [];
+        const itemsMapped = itemsArray.map(item => ({ 
+            ...item, 
+            stock: item.stock ?? 10,
+            category: item.category
+        }));
+        
+        app.store.pagination = {
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            totalElements: response.totalElements,
+            hasNext: response.hasNext
+        };
+
+        if (append && app.store.items && app.store.items !== "ERROR") {
+            app.store.items = [...app.store.items, ...itemsMapped];
+        } else {
+            app.store.items = itemsMapped;
+        }
+        
+    } catch (apiError) {
+        console.warn("API indisponível.", apiError);
+        app.store.items = "ERROR";
     }
 }
 
@@ -34,7 +54,6 @@ export async function updateItemStock(id, newStock) {
     if (itemIndex > -1) {
         items[itemIndex].stock = newStock;
         app.store.items = [...items]; 
-        localStorage.setItem("pokemart-items", JSON.stringify(app.store.items));
     }
 }
 
@@ -42,20 +61,4 @@ export async function getItemById(id) {
     if (!id) return null;
     await loadItems();
     return app.store.items.find(item => String(item.id) === String(id)) ?? null;
-}
-
-export function getCategoriesWithCount() {
-    const items = app.store.items ?? [];
-    if (items.length === 0 || items === "ERROR") return [];
-
-    const categoryMap = items.reduce((acc, item) => {
-        const catName = item.category || "Outros"; 
-        acc[catName] = (acc[catName] || 0) + 1;
-        return acc;
-    }, {});
-
-    return Object.entries(categoryMap).map(([name, count]) => ({ 
-        name, 
-        count 
-    }));
 }

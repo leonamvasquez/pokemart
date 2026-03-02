@@ -15,6 +15,7 @@ export class CartPage extends BasePage {
   constructor() {
     super();
     this.onStoreChange = () => this.render();
+    this.isCheckoutProcessing = false;
   }
 
   async connectedCallback() {
@@ -36,7 +37,6 @@ export class CartPage extends BasePage {
     this.root.addEventListener("click", async (e) => {
       
       if (e.target.closest("#checkout-btn")) {
-        const btn = e.target.closest("#checkout-btn");
         const user = app.store.user;
 
         if (!user) {
@@ -45,27 +45,20 @@ export class CartPage extends BasePage {
             return;
         }
 
-        btn.disabled = true;
-        btn.textContent = "Processando...";
-
-        const cart = app.store.cart;
+        this.isCheckoutProcessing = true;
+        this.render();
         
         try {
-            const checkoutPayload = {
-                userId: user.id,
-                items: cart.map(cartItem => ({
-                    productId: cartItem.itemId,
-                    quantity: cartItem.quantity
-                }))
-            };
-
-            console.log("User id: " + user.id);
-            await API.placeOrder(checkoutPayload);
+            await API.placeOrder();
 
             app.store.cart = [];
+            app.store.searchQuery = "";
+            app.store.selectedCategory = "";
             
             app.store.items = []; 
             loadItems(); 
+
+            this.isCheckoutProcessing = false; 
 
             Toast.show("Pedido finalizado com sucesso!", "success");
             app.router.go("/success");
@@ -73,8 +66,9 @@ export class CartPage extends BasePage {
         } catch (error) {
             console.error("Falha ao processar pagamento:", error);
             Toast.show("Erro ao processar compra. Tente novamente.", "error");
-            btn.disabled = false;
-            btn.textContent = "Finalizar Compra";
+            
+            this.isCheckoutProcessing = false;
+            this.render();
         }
         return;
       }
@@ -195,12 +189,20 @@ export class CartPage extends BasePage {
     if (summary) summary.style.display = 'block';
     
     if (checkoutBtn) {
-        checkoutBtn.disabled = hasIssues;
-        checkoutBtn.title = hasIssues 
-            ? "Remova os itens indisponíveis para continuar" 
-            : "";
-        checkoutBtn.textContent = "Finalizar Compra";
-        checkoutBtn.style.opacity = hasIssues ? "0.5" : "1";
+        if (this.isCheckoutProcessing) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.textContent = "Processando...";
+            checkoutBtn.style.opacity = "0.5";
+            checkoutBtn.style.cursor = "not-allowed";
+        } else {
+            checkoutBtn.disabled = hasIssues;
+            checkoutBtn.title = hasIssues 
+                ? "Remova os itens indisponíveis para continuar" 
+                : "";
+            checkoutBtn.textContent = "Finalizar Compra";
+            checkoutBtn.style.opacity = hasIssues ? "0.5" : "1";
+            checkoutBtn.style.cursor = hasIssues ? "not-allowed" : "pointer";
+        }
     }
 
     list.innerHTML = cartItemsData.map(item => this.createCartRowHTML(item)).join("");
@@ -269,7 +271,7 @@ export class CartPage extends BasePage {
       <li class="cart-row ${isUnavailable ? 'unavailable' : ''}" data-id="${item.id}" style="${isUnavailable ? 'opacity: 0.8; background: #fff1f2; border: 1px solid #fca5a5;' : ''}">
         <div class="row-left">
             <a href="/item/${item.id}" data-link class="thumb item-link">
-                <img src="${item.image}" alt="${item.name}" style="${isUnavailable ? 'filter: grayscale(1);' : ''}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.src='/images/missingno.png';" style="${isUnavailable ? 'filter: grayscale(1);' : ''}">
             </a>
             <div class="meta">
                 <span class="name">${item.name}</span>

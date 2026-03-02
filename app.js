@@ -1,6 +1,7 @@
 import Store from './services/Store.js';
 import Router from './services/Router.js';
 import { getCartCount } from "./services/Cart.js";
+import { Toast } from "./services/Toast.js";
 
 import { ItemsPage } from './components/ItemsPage.js';
 import { CartPage } from "./components/CartPage.js";
@@ -21,6 +22,21 @@ window.addEventListener("appauthchange", () => {
     updateDesktopMenu();
     updateMenuUI();
 });
+
+function performLogout() {
+    localStorage.removeItem("pokemart_token");
+    localStorage.removeItem("pokemart_role");
+    localStorage.removeItem("pokemart-cart");
+    localStorage.removeItem("pokemart-cart-anonymous");
+    app.store.user = null;
+    app.store.cart = [];
+    app.store.searchQuery = "";
+    app.store.selectedCategory = "";
+    app.store.items = null;
+    window.dispatchEvent(new CustomEvent("appcartchange"));
+    Toast.show("Sessão encerrada com sucesso.", "info");
+    app.router.go("/");
+}
 
 window.addEventListener("DOMContentLoaded", () => { 
     app.router.init();
@@ -48,14 +64,14 @@ window.addEventListener("DOMContentLoaded", () => {
             if (confirmReset) {
                 const keysToRemove = [
                     "pokemart-items",
-                    "pokemart-users",
                     "pokemart-user",
                     "pokemart-cart-anonymous",
-                    "pokemart-cart"
+                    "pokemart-cart",
+                    "pokemart_token",
+                    "pokemart_role"
                 ];
 
                 keysToRemove.forEach(key => localStorage.removeItem(key));
-                
                 window.location.href = "/";
             }
         });
@@ -78,7 +94,7 @@ function updateCartUI() {
     badge.textContent = qty;
     badge.hidden = qty === 0;
 
-    if (qty >= 0) {
+    if (qty > 0) {
         badge.classList.remove("pulse-animation");
         void badge.offsetWidth;
         badge.classList.add("pulse-animation");
@@ -98,11 +114,7 @@ function updateAuthUI() {
         loginLink.onclick = (e) => {
             e.preventDefault();
             e.stopImmediatePropagation();
-
-            app.store.user = null;
-            app.store.cart = [];
-            
-            app.router.go("/");
+            performLogout();
         };
     } else {
         loginLink.textContent = "Entrar";
@@ -146,9 +158,7 @@ function updateDesktopMenu() {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            app.store.user = null;
-            app.store.cart = [];
-            app.router.go("/");
+            performLogout();
         });
     }
 }
@@ -173,10 +183,8 @@ function updateMenuUI() {
         const logoutLi = document.createElement("li");
         logoutLi.innerHTML = `<button class="menu-logout-btn">Sair</button>`;
         logoutLi.querySelector("button").onclick = () => {
-            app.store.user = null;
-            app.store.cart = [];
             toggleMenu(); 
-            app.router.go("/");
+            performLogout();
         };
         menuLinks.appendChild(logoutLi);
     } else {

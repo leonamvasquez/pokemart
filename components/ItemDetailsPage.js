@@ -127,6 +127,10 @@ export class ItemDetailsPage extends BasePage {
     
     $("#item-image").src = item.image;
     $("#item-image").alt = item.name;
+    $("#item-image").onerror = function() {
+        this.onerror = null;
+        this.src = '/images/missingno.png';
+    };
     $("#item-name").textContent = item.name;
     $("#item-desc").textContent = item.description;
     $("#item-price").textContent = `₽ ${formatPrice(item.price)}`;

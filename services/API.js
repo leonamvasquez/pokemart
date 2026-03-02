@@ -1,139 +1,210 @@
+import { Toast } from "./Toast.js";
+
 const BASE_URL = "http://localhost:8080/api";
 
+const getAuthHeaders = () => {
+    const token = localStorage.getItem("pokemart_token");
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+};
+
+const safeFetch = async (endpoint, options = {}) => {
+    const response = await fetch(`${BASE_URL}${endpoint}`, options);
+    
+    if ((response.status === 401 || response.status === 403) && endpoint !== '/auth/login') {
+        console.warn("[API] Sessão inválida ou expirada. Forçando logout...");
+        
+        localStorage.removeItem("pokemart_token");
+        localStorage.removeItem("pokemart_role");
+        
+        if (window.app && window.app.store) {
+            window.app.store.user = null;
+            window.app.store.cart = [];
+            window.dispatchEvent(new CustomEvent("appauthchange"));
+            window.dispatchEvent(new CustomEvent("appcartchange"));
+            window.app.router.go("/login");
+        } else {
+            window.location.href = "/login";
+        }
+
+        Toast.show("Sua sessão expirou. Por favor, faça login novamente.", "error");
+        
+        throw new Error("SESSAO_EXPIRADA"); 
+    }
+    
+    if (!response.ok) {
+        throw new Error(`Status HTTP: ${response.status}`);
+    }
+    
+    if (response.status === 204) return true;
+    
+    return await response.json();
+};
+
+
 const API = {
-    fetchItems: async () => {
+    fetchItems: async (page = 0, size = 10, category = "", search = "", sort = "price-asc") => {
         try {
-            const response = await fetch(`${BASE_URL}/items`);
-            if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-            return await response.json();
+            let url = `/items?page=${page}&size=${size}`;
+            if (category) url += `&category=${encodeURIComponent(category)}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (sort) url += `&sort=${encodeURIComponent(sort)}`;
+            
+            return await safeFetch(url);
         } catch (error) {
-            console.error("Falha ao buscar itens do Spring Boot:", error);
+            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Falha ao buscar itens do PokéMart.", "error");
+            return { data: [], totalElements: 0, totalPages: 0, currentPage: 0 };
+        }
+    },
+
+    fetchAdminItems: async (page = 0, size = 10, category = "", search = "", sort = "price-asc") => {
+        try {
+            let url = `/items/all?page=${page}&size=${size}`;
+            if (category) url += `&category=${encodeURIComponent(category)}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (sort) url += `&sort=${encodeURIComponent(sort)}`;
+            
+            return await safeFetch(url, { headers: getAuthHeaders() });
+        } catch (error) {
+            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Falha ao buscar inventário.", "error");
+            return { data: [], totalElements: 0, totalPages: 0, currentPage: 0 };
+        }
+    },
+
+    fetchCategoryStats: async (search = "") => {
+        try {
+            let url = `/categories/stats`;
+            if (search) url += `?search=${encodeURIComponent(search)}`;
+            return await safeFetch(url);
+        } catch (error) {
             return [];
         }
     },
 
     fetchCategories: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/categories`);
-            if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-            return await response.json();
+            return await safeFetch(`/categories`);
         } catch (error) {
-            console.error("Falha ao buscar categorias:", error);
-            return [];
-        }
-    },
-
-    placeOrder: async (checkoutPayload) => {
-        try {
-            const response = await fetch(`${BASE_URL}/checkout`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(checkoutPayload)
-            });
-            if (!response.ok) throw new Error(`Erro ao finalizar pedido: ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error("Falha no checkout:", error);
-            throw error;
-        }
-    },
-
-    getUserOrders: async (userId) => {
-        try {
-            const response = await fetch(`${BASE_URL}/users/${userId}/orders`);
-            if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error("Falha ao buscar histórico de pedidos:", error);
+            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Falha ao buscar categorias.", "error");
             return [];
         }
     },
 
     login: async (email, password) => {
         try {
-            const response = await fetch(`${BASE_URL}/users/login`, {
+            return await safeFetch(`/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-            if (!response.ok) throw new Error("Credenciais inválidas");
-            return await response.json();
         } catch (error) {
-            console.error("Falha no login:", error);
+            Toast.show("E-mail ou senha incorretos.", "error");
+            return null;
+        }
+    },
+
+    getMe: async () => {
+        try {
+            return await safeFetch(`/auth/me`, { headers: getAuthHeaders() });
+        } catch (error) {
             return null;
         }
     },
 
     register: async (userData) => {
         try {
-            const response = await fetch(`${BASE_URL}/users`, {
+            return await safeFetch(`/users`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
-            if (!response.ok) throw new Error("Erro ao cadastrar");
-            return await response.json();
         } catch (error) {
-            console.error("Falha no cadastro:", error);
+            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Falha no cadastro. O e-mail pode já estar em uso.", "error");
             return null;
         }
     },
 
-    createItem: async (itemData) => {
+    placeOrder: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/items`, {
+            return await safeFetch(`/checkout`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemData)
+                headers: getAuthHeaders()
             });
-            if (!response.ok) throw new Error("Erro ao criar item");
-            return await response.json();
         } catch (error) {
-            console.error("Falha ao criar item:", error);
+            if (error.message !== "SESSAO_EXPIRADA") console.error("Erro ao processar sua compra. Tente novamente.", "error");
             throw error;
         }
+    },
+
+    getUserOrders: async (userId) => {
+        try {
+            return await safeFetch(`/users/${userId}/orders`, { headers: getAuthHeaders() });
+        } catch (error) {
+            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Não foi possível carregar seus pedidos.", "error");
+            return [];
+        }
+    },
+
+    createItem: async (itemData) => {
+        return await safeFetch(`/items`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(itemData)
+        });
     },
 
     updateItem: async (id, itemData) => {
-        try {
-            const response = await fetch(`${BASE_URL}/items/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemData)
-            });
-            if (!response.ok) throw new Error("Erro ao atualizar item");
-            return await response.json();
-        } catch (error) {
-            console.error("Falha ao atualizar item:", error);
-            throw error;
-        }
+        return await safeFetch(`/items/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(itemData)
+        });
     },
 
     deleteItem: async (id) => {
+        return await safeFetch(`/items/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+    },
+
+    toggleStatus: async (id, deletedStatus) => {
+        return await safeFetch(`/items/${id}/status?deleted=${deletedStatus}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+    },
+
+    getCart: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/items/${id}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error("Erro ao deletar item");
-            return true; // Status 204 No Content não retorna JSON
+            return await safeFetch(`/cart`, { headers: getAuthHeaders() });
         } catch (error) {
-            console.error("Falha ao deletar item:", error);
+            return [];
+        }
+    },
+
+    updateCartItem: async (itemId, quantity) => {
+        try {
+            return await safeFetch(`/cart`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ itemId, quantity })
+            });
+        } catch (error) {
             throw error;
         }
     },
 
-    toggleStatus: async (id, deletedStatus) => {
+    clearCart: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/items/${id}/status?deleted=${deletedStatus}`, {
-                method: 'PATCH'
+            await safeFetch(`/cart`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
             });
-            if (!response.ok) throw new Error("Erro ao mudar status");
             return true;
         } catch (error) {
-            console.error("Falha ao mudar status:", error);
-            throw error;
+            return false;
         }
     }
 };

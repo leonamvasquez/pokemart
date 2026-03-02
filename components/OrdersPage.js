@@ -94,7 +94,6 @@ export class OrdersPage extends BasePage {
             return;
         }
 
-        // Se chegou aqui, existem pedidos
         listContainer.hidden = false;
         emptyContainer.hidden = true;
 
@@ -113,7 +112,7 @@ export class OrdersPage extends BasePage {
 
             return `
             <div class="order-item">
-                <img src="${imageUrl}" alt="${item.name}" loading="lazy">
+                <img src="${imageUrl}" alt="${item.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/missingno.png';">
                 <div class="item-meta">
                     <span class="item-name">${item.quantity}x ${item.name}</span>
                     <span class="item-price">₽ ${formatPrice(item.price)} un.</span>
