@@ -2,21 +2,19 @@ import { Toast } from "./Toast.js";
 
 const BASE_URL = "http://localhost:8080/api";
 
-const getAuthHeaders = () => {
-    const token = localStorage.getItem("pokemart_token");
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return headers;
+const getStandardHeaders = () => {
+    return { 'Content-Type': 'application/json' };
 };
 
 const safeFetch = async (endpoint, options = {}) => {
+    options.credentials = "include";
+
     const response = await fetch(`${BASE_URL}${endpoint}`, options);
     
     if ((response.status === 401 || response.status === 403) && endpoint !== '/auth/login') {
         console.warn("[API] Sessão inválida ou expirada. Forçando logout...");
         
-        localStorage.removeItem("pokemart_token");
-        localStorage.removeItem("pokemart_role");
+        localStorage.removeItem("pokemart_role"); 
         
         if (window.app && window.app.store) {
             window.app.store.user = null;
@@ -29,19 +27,27 @@ const safeFetch = async (endpoint, options = {}) => {
         }
 
         Toast.show("Sua sessão expirou. Por favor, faça login novamente.", "error");
-        
         throw new Error("SESSAO_EXPIRADA"); 
     }
     
     if (!response.ok) {
-        throw new Error(`Status HTTP: ${response.status}`);
+        let errorData = null;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            console.error("Erro ao dar parse no JSON de erro.");
+        }
+
+        const error = new Error(`Status HTTP: ${response.status}`);
+        error.status = response.status;
+        error.data = errorData; 
+        throw error;
     }
     
     if (response.status === 204) return true;
     
     return await response.json();
 };
-
 
 const API = {
     fetchItems: async (page = 0, size = 10, category = "", search = "", sort = "price-asc") => {
@@ -65,7 +71,7 @@ const API = {
             if (search) url += `&search=${encodeURIComponent(search)}`;
             if (sort) url += `&sort=${encodeURIComponent(sort)}`;
             
-            return await safeFetch(url, { headers: getAuthHeaders() });
+            return await safeFetch(url, { headers: getStandardHeaders() });
         } catch (error) {
             if (error.message !== "SESSAO_EXPIRADA") Toast.show("Falha ao buscar inventário.", "error");
             return { data: [], totalElements: 0, totalPages: 0, currentPage: 0 };
@@ -92,64 +98,71 @@ const API = {
     },
 
     login: async (email, password) => {
+        return await safeFetch(`/auth/login`, {
+            method: 'POST',
+            headers: getStandardHeaders(),
+            body: JSON.stringify({ email, password })
+        });
+    },
+
+    logout: async () => {
         try {
-            return await safeFetch(`/auth/login`, {
+            await safeFetch(`/auth/logout`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                headers: getStandardHeaders()
             });
+            return true;
         } catch (error) {
-            Toast.show("E-mail ou senha incorretos.", "error");
-            return null;
+            console.warn("Erro ao fazer logout no servidor, limpando apenas o frontend.");
+            return false;
         }
     },
 
     getMe: async () => {
         try {
-            return await safeFetch(`/auth/me`, { headers: getAuthHeaders() });
+            return await safeFetch(`/auth/me`, { headers: getStandardHeaders() });
         } catch (error) {
             return null;
         }
     },
 
     register: async (userData) => {
-        try {
-            return await safeFetch(`/users`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            });
-        } catch (error) {
-            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Falha no cadastro. O e-mail pode já estar em uso.", "error");
-            return null;
-        }
+        return await safeFetch(`/users`, {
+            method: 'POST',
+            headers: getStandardHeaders(),
+            body: JSON.stringify(userData)
+        });
     },
 
     placeOrder: async () => {
         try {
             return await safeFetch(`/checkout`, {
                 method: 'POST',
-                headers: getAuthHeaders()
+                headers: getStandardHeaders()
             });
         } catch (error) {
-            if (error.message !== "SESSAO_EXPIRADA") console.error("Erro ao processar sua compra. Tente novamente.", "error");
+            if (error.message !== "SESSAO_EXPIRADA") Toast.show("Erro ao processar sua compra.", "error");
             throw error;
         }
     },
 
     getUserOrders: async (userId) => {
         try {
-            return await safeFetch(`/users/${userId}/orders`, { headers: getAuthHeaders() });
+            return await safeFetch(`/users/${userId}/orders`, { headers: getStandardHeaders() });
         } catch (error) {
             if (error.message !== "SESSAO_EXPIRADA") Toast.show("Não foi possível carregar seus pedidos.", "error");
             return [];
         }
     },
 
+    fetchItemById: async (id) => {
+        return await safeFetch(`/items/${id}`);
+    },
+
     createItem: async (itemData) => {
         return await safeFetch(`/items`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: getStandardHeaders(),
             body: JSON.stringify(itemData)
         });
     },
@@ -157,7 +170,7 @@ const API = {
     updateItem: async (id, itemData) => {
         return await safeFetch(`/items/${id}`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: getStandardHeaders(),
             body: JSON.stringify(itemData)
         });
     },
@@ -165,42 +178,38 @@ const API = {
     deleteItem: async (id) => {
         return await safeFetch(`/items/${id}`, {
             method: 'DELETE',
-            headers: getAuthHeaders()
+            headers: getStandardHeaders()
         });
     },
 
     toggleStatus: async (id, deletedStatus) => {
         return await safeFetch(`/items/${id}/status?deleted=${deletedStatus}`, {
             method: 'PATCH',
-            headers: getAuthHeaders()
+            headers: getStandardHeaders()
         });
     },
 
     getCart: async () => {
         try {
-            return await safeFetch(`/cart`, { headers: getAuthHeaders() });
+            return await safeFetch(`/cart`, { headers: getStandardHeaders() });
         } catch (error) {
             return [];
         }
     },
 
     updateCartItem: async (itemId, quantity) => {
-        try {
-            return await safeFetch(`/cart`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ itemId, quantity })
-            });
-        } catch (error) {
-            throw error;
-        }
+        return await safeFetch(`/cart`, {
+            method: 'POST',
+            headers: getStandardHeaders(),
+            body: JSON.stringify({ itemId, quantity })
+        });
     },
 
     clearCart: async () => {
         try {
             await safeFetch(`/cart`, {
                 method: 'DELETE',
-                headers: getAuthHeaders()
+                headers: getStandardHeaders()
             });
             return true;
         } catch (error) {

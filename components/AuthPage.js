@@ -86,7 +86,6 @@ export class AuthPage extends BasePage {
 
         app.store.user = adminUser;
         
-        localStorage.setItem("pokemart_token", "demo-admin-token-123");
         localStorage.setItem("pokemart_role", "ADMIN");
         
         const redirectTarget = sessionStorage.getItem("redirectAfterLogin") || "/";
@@ -113,17 +112,15 @@ export class AuthPage extends BasePage {
         submitBtn.textContent = this.isLogin ? "Conectando..." : "Cadastrando...";
 
         if (this.isLogin) {
-            const authResponse = await API.login(email, password);
-            
-            if (authResponse && authResponse.token) {
+            try {
+                const authResponse = await API.login(email, password);
                 
-                localStorage.setItem("pokemart_token", authResponse.token);
                 localStorage.setItem("pokemart_role", authResponse.role);
                 
                 app.store.user = {
                     id: authResponse.id,
-                    email: email,
-                    name: email.split('@')[0], 
+                    email: authResponse.email || email,
+                    name: authResponse.name || email.split('@')[0], 
                     role: authResponse.role
                 };
                 
@@ -133,9 +130,13 @@ export class AuthPage extends BasePage {
                 sessionStorage.removeItem("redirectAfterLogin");
                 app.router.go(redirectTarget);
                 
-                return;
-            } else {
-                this.showError("E-mail ou senha incorretos.");
+                return; 
+            } catch (error) {
+                if (error.data && error.data.error) {
+                    this.showError(error.data.error);
+                } else {
+                    this.showError("E-mail ou senha incorretos.");
+                }
             }
         } else {
             if (!isValidEmail(email)) {
@@ -166,14 +167,24 @@ export class AuthPage extends BasePage {
                 name: email.split('@')[0]
             };
             
-            const createdUser = await API.register(newUser);
-            
-            if (createdUser) {
+            try {
+                await API.register(newUser);
                 Toast.show("Treinador cadastrado com sucesso no PokéMart! Pode entrar.", "success");
                 this.isLogin = true;
                 this.clearInputs();
-            } else {
-                this.showError("Erro ao cadastrar. Este e-mail pode já estar em uso.");
+            } catch (error) {
+                if (error.data) {
+                    if (error.data.errors && error.data.errors.length > 0) {
+                        const mensagens = error.data.errors.map(e => e.message).join(" | ");
+                        this.showError(mensagens);
+                    } else if (error.data.error) {
+                        this.showError(error.data.error);
+                    } else {
+                        this.showError("Erro ao cadastrar. Verifique os dados.");
+                    }
+                } else {
+                    this.showError("Erro inesperado ao tentar cadastrar.");
+                }
             }
         }
 

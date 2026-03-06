@@ -32,10 +32,15 @@ const proxiedStore = new Proxy(Store, {
                 target.cart = [];
                 localStorage.removeItem("pokemart-cart-anonymous");
                 localStorage.removeItem("pokemart-cart");
+                localStorage.removeItem("pokemart_role");
             } 
 
-            if (newUser) localStorage.setItem("pokemart-user", JSON.stringify(newUser));
-            else localStorage.removeItem("pokemart-user");
+            if (newUser) {
+                localStorage.setItem("pokemart-user", JSON.stringify(newUser));
+                if (newUser.role) localStorage.setItem("pokemart_role", newUser.role);
+            } else {
+                localStorage.removeItem("pokemart-user");
+            }
 
             window.dispatchEvent(new Event("appauthchange"));
             window.dispatchEvent(new Event("appcartchange"));

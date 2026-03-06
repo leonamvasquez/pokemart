@@ -54,19 +54,27 @@ const Router = {
         }
 
         if (adminRoutes.includes(route)) {
-            const realUser = await API.getMe();
+            try {
+                const realUser = await API.getMe();
 
-            if (!realUser || realUser.role !== "ADMIN") {
-                console.warn("Tentativa de spoofing bloqueada. O usuário não é ADMIN real.");
-                
-                localStorage.setItem("pokemart_role", realUser ? realUser.role : "USER");
-                if (app.store.user) app.store.user.role = realUser ? realUser.role : "USER";
-                
+                if (!realUser) {
+                    app.store.user = null;
+                    history.replaceState({ route: "/login" }, '', "/login");
+                    Toast.show("Sua sessão expirou. Faça login novamente.", "warning");
+                    window.dispatchEvent(new CustomEvent("appauthchange")); 
+                    return document.createElement("auth-page");
+                }
+
+                if (realUser.role !== "ADMIN") {
+                    console.warn("Tentativa de spoofing bloqueada. O usuário não é ADMIN.");
+                    app.store.user.role = "USER";
+                    history.replaceState({ route: "/" }, '', "/");
+                    Toast.show("Acesso restrito. Apenas administradores têm permissão.", "error");
+                    return document.createElement("items-page"); 
+                }
+            } catch (error) {
                 history.replaceState({ route: "/" }, '', "/");
-                Toast.show("Acesso restrito. Apenas o administradores tem permissão.", "error");
-                
-                window.dispatchEvent(new CustomEvent("appauthchange")); 
-                
+                Toast.show("Erro ao validar permissões. Tente novamente.", "error");
                 return document.createElement("items-page"); 
             }
         }
@@ -74,6 +82,7 @@ const Router = {
         if (Router.routes[route]) {
             return document.createElement(Router.routes[route]);
         }
+
 
         if (route.startsWith("/item/")) {
             const el = document.createElement("item-details-page");

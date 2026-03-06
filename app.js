@@ -2,6 +2,7 @@ import Store from './services/Store.js';
 import Router from './services/Router.js';
 import { getCartCount } from "./services/Cart.js";
 import { Toast } from "./services/Toast.js";
+import API from "./services/API.js";
 
 import { ItemsPage } from './components/ItemsPage.js';
 import { CartPage } from "./components/CartPage.js";
@@ -23,16 +24,14 @@ window.addEventListener("appauthchange", () => {
     updateMenuUI();
 });
 
-function performLogout() {
-    localStorage.removeItem("pokemart_token");
-    localStorage.removeItem("pokemart_role");
-    localStorage.removeItem("pokemart-cart");
-    localStorage.removeItem("pokemart-cart-anonymous");
-    app.store.user = null;
-    app.store.cart = [];
+async function performLogout() {
+    await API.logout(); 
+    
+    app.store.user = null; 
     app.store.searchQuery = "";
     app.store.selectedCategory = "";
     app.store.items = null;
+    
     window.dispatchEvent(new CustomEvent("appcartchange"));
     Toast.show("Sessão encerrada com sucesso.", "info");
     app.router.go("/");
@@ -58,16 +57,17 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const resetBtn = document.querySelector("#reset-app-btn");
     if (resetBtn) {
-        resetBtn.addEventListener("click", () => {
+        resetBtn.addEventListener("click", async () => {
             const confirmReset = confirm("Isso vai apagar todo o seu carrinho, histórico de pedidos, usuários criados e resetar o estoque. Deseja começar uma nova jornada?");
             
             if (confirmReset) {
+                await API.logout(); 
+
                 const keysToRemove = [
                     "pokemart-items",
                     "pokemart-user",
                     "pokemart-cart-anonymous",
                     "pokemart-cart",
-                    "pokemart_token",
                     "pokemart_role"
                 ];
 
