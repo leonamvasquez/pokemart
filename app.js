@@ -22,9 +22,12 @@ window.addEventListener("appauthchange", () => {
     updateAuthUI();
     updateDesktopMenu();
     updateMenuUI();
+    updateResetButtonUI();
 });
 
 async function performLogout() {
+    const wasDemoMode = localStorage.getItem("pokemart_demo_mode") === "true";
+
     await API.logout(); 
     
     app.store.user = null; 
@@ -34,7 +37,12 @@ async function performLogout() {
     
     window.dispatchEvent(new CustomEvent("appcartchange"));
     Toast.show("Sessão encerrada com sucesso.", "info");
-    app.router.go("/");
+
+    if (wasDemoMode) {
+        window.location.href = "/";
+    } else {
+        app.router.go("/");
+    }
 }
 
 window.addEventListener("DOMContentLoaded", () => { 
@@ -43,6 +51,7 @@ window.addEventListener("DOMContentLoaded", () => {
     updateDesktopMenu();
     updateMenuUI();
     updateActiveLinkUI(location.pathname);
+    updateResetButtonUI();
 
     const btnOpen = document.querySelector("#hamburger-menu");
     const btnClose = document.querySelector("#close-menu");
@@ -58,7 +67,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const resetBtn = document.querySelector("#reset-app-btn");
     if (resetBtn) {
         resetBtn.addEventListener("click", async () => {
-            const confirmReset = confirm("Isso vai apagar todo o seu carrinho, histórico de pedidos, usuários criados e resetar o estoque. Deseja começar uma nova jornada?");
+            const confirmReset = confirm("Deseja resetar as alterações do Modo Demo e voltar ao início?");
             
             if (confirmReset) {
                 await API.logout(); 
@@ -68,10 +77,12 @@ window.addEventListener("DOMContentLoaded", () => {
                     "pokemart-user",
                     "pokemart-cart-anonymous",
                     "pokemart-cart",
-                    "pokemart_role"
+                    "pokemart_role",
+                    "pokemart_demo_mode"
                 ];
 
                 keysToRemove.forEach(key => localStorage.removeItem(key));
+                
                 window.location.href = "/";
             }
         });
@@ -226,4 +237,13 @@ function updateActiveLinkUI(currentRoute) {
             link.classList.add("active-link");
         }
     });
+}
+
+function updateResetButtonUI() {
+    const resetBtn = document.querySelector("#reset-app-btn");
+    if (!resetBtn) return;
+
+    const isDemoMode = localStorage.getItem("pokemart_demo_mode") === "true";
+    
+    resetBtn.hidden = !isDemoMode;
 }
