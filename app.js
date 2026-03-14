@@ -34,6 +34,11 @@ async function performLogout() {
     app.store.searchQuery = "";
     app.store.selectedCategory = "";
     app.store.items = null;
+
+    localStorage.removeItem("pokemart_demo_mode");
+    localStorage.removeItem("pokemart_demo_cart");
+    localStorage.removeItem("pokemart_demo_orders");
+    
     
     window.dispatchEvent(new CustomEvent("appcartchange"));
     Toast.show("Sessão encerrada com sucesso.", "info");
@@ -78,7 +83,9 @@ window.addEventListener("DOMContentLoaded", () => {
                     "pokemart-cart-anonymous",
                     "pokemart-cart",
                     "pokemart_role",
-                    "pokemart_demo_mode"
+                    "pokemart_demo_mode",
+                    "pokemort_demo_cart",
+                    "pokemart_demo_orders"
                 ];
 
                 keysToRemove.forEach(key => localStorage.removeItem(key));

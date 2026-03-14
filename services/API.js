@@ -1,7 +1,6 @@
 import { Toast } from "./Toast.js";
 
 const hostname = window.location.hostname;
-
 const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
 
 const BASE_URL = isLocalhost 
@@ -13,7 +12,7 @@ const getStandardHeaders = () => {
 };
 
 const isDemoMode = () => localStorage.getItem("pokemart_demo_mode") === "true";
-const generateFakeId = () => "demo-" + Math.random().toString(36).substr(2, 9);
+const generateFakeId = () => "demo-" + Math.random().toString(36).substring(2, 11);
 
 let demoDatabase = null;
 
@@ -35,8 +34,9 @@ const safeFetch = async (endpoint, options = {}) => {
     const method = options.method || "GET";
 
     if (endpoint === '/auth/me' && method === 'GET') {
-        return { id: "ef9a58ea-6c5d-418a-a598-dfb293e7e77d", name: "Professor Carvalho", email: "admin@admin.com", role: "ADMIN" };
+        return { id: "ef9a58ea-6c5d-418a-a598-dfb293e7e77d", name: "Professor Carvalho (Demo)", email: "admin@admin.com", role: "ADMIN" };
     }
+    
     if (endpoint === '/auth/logout' && method === 'POST') {
         localStorage.removeItem("pokemart_demo_mode");
         return true;
@@ -78,7 +78,6 @@ const safeFetch = async (endpoint, options = {}) => {
         const paginated = filtered.slice(page * size, (page + 1) * size);
 
         await new Promise(r => setTimeout(r, 200)); 
-
         return {
             data: paginated,
             currentPage: page,
@@ -90,27 +89,23 @@ const safeFetch = async (endpoint, options = {}) => {
 
     if (endpoint.startsWith("/items") && method !== "GET") {
       await new Promise((resolve) => setTimeout(resolve, 400));
-
       if (method === "POST") {
         const newItem = { id: generateFakeId(), ...JSON.parse(options.body), deleted: false };
         demoDatabase.unshift(newItem); 
         return newItem;
       }
-
       if (method === "PUT") {
         const bodyObj = JSON.parse(options.body);
         const id = endpoint.split("/")[2];
         demoDatabase = demoDatabase.map(i => String(i.id) === id ? { ...i, ...bodyObj } : i);
         return bodyObj;
       }
-
       if (method === "PATCH") {
         const id = endpoint.split("/")[2].split("?")[0];
         const isDeleted = endpoint.includes("deleted=true");
         demoDatabase = demoDatabase.map(i => String(i.id) === id ? { ...i, deleted: isDeleted } : i);
         return true;
       }
-
       if (method === "DELETE") {
         const id = endpoint.split("/")[2];
         demoDatabase = demoDatabase.filter(i => String(i.id) !== id);
@@ -118,21 +113,84 @@ const safeFetch = async (endpoint, options = {}) => {
       }
     }
 
-    if (endpoint.startsWith("/checkout") && method === "POST") {
-      await new Promise(r => setTimeout(r, 800));
-      Toast.show("Compra processada com sucesso (Simulação Local).", "info");
-      return { id: generateFakeId(), status: "APPROVED", items: [], totalAmount: 0 };
+    const getDemoCart = () => JSON.parse(localStorage.getItem("pokemart_demo_cart")) || [];
+    const saveDemoCart = (cart) => localStorage.setItem("pokemart_demo_cart", JSON.stringify(cart));
+    const getDemoOrders = () => JSON.parse(localStorage.getItem("pokemart_demo_orders")) || [];
+    const saveDemoOrders = (orders) => localStorage.setItem("pokemart_demo_orders", JSON.stringify(orders));
+
+    if (endpoint.startsWith("/cart")) {
+      if (method === "GET") {
+        return getDemoCart();
+      }
+      if (method === "POST") {
+        const bodyObj = JSON.parse(options.body);
+        const itemId = bodyObj.itemId;
+        const quantity = bodyObj.quantity;
+        let cart = getDemoCart();
+        const existingItem = cart.find(i => String(i.itemId) === String(itemId));
+        
+        if (existingItem) {
+          existingItem.quantity = quantity;
+        } else {
+          const product = demoDatabase.find(i => String(i.id) === String(itemId));
+          if (product) {
+            cart.push({
+              itemId: product.id,
+              name: product.name,
+              quantity: quantity,
+              price: product.price,
+              imageUrl: product.image
+            });
+          }
+        }
+        cart = cart.filter(i => i.quantity > 0);
+        saveDemoCart(cart);
+        return cart;
+      }
+      if (method === "DELETE") {
+        saveDemoCart([]);
+        return true;
+      }
     }
 
-    if (endpoint.startsWith("/cart") && method !== "GET") return true;
+    if (endpoint.startsWith("/checkout") && method === "POST") {
+      await new Promise(r => setTimeout(r, 600)); 
+      const cart = getDemoCart();
+      if (cart.length === 0) throw new Error("Carrinho vazio");
+
+      const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const newOrder = {
+        id: generateFakeId(),
+        status: "APPROVED",
+        totalAmount: totalAmount,
+        createdAt: new Date().toISOString(),
+        items: cart.map(i => ({
+            productId: i.itemId,
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+            imageUrl: i.imageUrl || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"
+        }))
+      };
+
+      const orders = getDemoOrders();
+      orders.push(newOrder);
+      saveDemoOrders(orders);
+      saveDemoCart([]); 
+      
+      Toast.show("Compra Processada (Modo Demo)!", "info");
+      return newOrder;
+    }
+
+    if (endpoint.match(/\/users\/.*\/orders/) && method === "GET") {
+      await new Promise(r => setTimeout(r, 300));
+      return getDemoOrders();
+    }
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, options);
 
-  if (
-    (response.status === 401 || response.status === 403) &&
-    endpoint !== "/auth/login"
-  ) {
+  if ((response.status === 401 || response.status === 403) && endpoint !== "/auth/login") {
     localStorage.removeItem("pokemart_role");
     if (window.app && window.app.store) {
       window.app.store.user = null;
@@ -160,7 +218,6 @@ const safeFetch = async (endpoint, options = {}) => {
   }
 
   if (response.status === 204) return true;
-
   return await response.json();
 };
 
