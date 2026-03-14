@@ -128,8 +128,7 @@ export class OrdersPage extends BasePage {
         });
 
         const itemsHtml = order.items.map(item => {
-            const product = (app.store.items || []).find(i => String(i.id) === String(item.productId));
-            const imageUrl = product ? product.image : "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"; // fallback
+            const imageUrl = item.imageUrl || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
 
             return `
             <div class="order-item">
