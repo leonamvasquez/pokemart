@@ -49,7 +49,10 @@ export class AuthPage extends BasePage {
 
     const demoAdminBtn = this.root.querySelector("#demo-admin-btn");
     if (demoAdminBtn) {
-      demoAdminBtn.addEventListener("click", () => this.loginAsDemoAdmin());
+      demoAdminBtn.addEventListener("click", () => {
+        if (this.isLoadingDemo) return;  
+        this.loginAsDemoAdmin();
+      });
     }
 
     this.root.addEventListener("pointerdown", (e) => {
@@ -66,38 +69,79 @@ export class AuthPage extends BasePage {
     this.root.addEventListener("pointercancel", removeActive);
   }
 
-  loginAsDemoAdmin() {
-    const adminEmail = "admin@admin.com";
-    let adminUser = app.store.users?.find((u) => u.email === adminEmail);
-
-    if (!adminUser) {
-      adminUser = {
-        id: "ef9a58ea-6c5d-418a-a598-dfb293e7e77d",
-        email: adminEmail,
-        name: "Professor Carvalho",
-        cart: [],
-        orders: [],
-        role: "ADMIN",
-      };
-      if (app.store.users) {
-        app.store.users = [...app.store.users, adminUser];
+  async loginAsDemoAdmin() {
+    this.isLoadingDemo = true;
+    const demoAdminBtn = this.root.querySelector("#demo-admin-btn");
+    if (demoAdminBtn) {
+      demoAdminBtn.textContent = "Carregando modo Demo...";
+      demoAdminBtn.style.opacity = "0.7";
+      demoAdminBtn.style.cursor = "wait";
+    }
+    try {
+      const adminEmail = "admin@admin.com";
+      let adminUser = app.store.users?.find((u) => u.email === adminEmail);
+      if (!adminUser) {
+        adminUser = {
+          id: "ef9a58ea-6c5d-418a-a598-dfb293e7e77d",
+          email: adminEmail,
+          name: "Professor Carvalho",
+          cart: [],
+          orders: [],
+          role: "ADMIN",
+        };
+        if (app.store.users) {
+          app.store.users = [...app.store.users, adminUser];
+        }
+      }
+      const anonCartItems = [...(app.store.cart || [])];
+      const carrinhoComNomes = [];
+      
+      for (const item of anonCartItems) {
+        try {
+          const produtoReal = await API.fetchItemById(item.itemId);
+          carrinhoComNomes.push({ nome: produtoReal.name, quantity: item.quantity });
+        } catch (e) {
+          console.error("Item deslogado não localizado no DB Real!");
+        }
+      }
+      localStorage.setItem("pokemart_role", "ADMIN");
+      localStorage.setItem("pokemart_demo_mode", "true");
+      const bancoFake = await API.fetchItems(0, 1000); 
+      const fakeItens = bancoFake.data || [];
+      app.store.user = adminUser;
+      for (const item of carrinhoComNomes) {
+        const produtoFalsoIgual = fakeItens.find(i => i.name === item.nome);
+        if (produtoFalsoIgual) {
+          await API.updateCartItem(String(produtoFalsoIgual.id), item.quantity);
+        }
+      }
+      
+      app.store.cart = await API.getCart();
+      const redirectTarget = sessionStorage.getItem("redirectAfterLogin") || "/";
+      sessionStorage.removeItem("redirectAfterLogin");
+      Toast.show(
+        "Bem-vindo. Acesso Administrativo liberado (Modo Local).",
+        "success",
+      );
+      
+      this.isLoadingDemo = false;
+      app.router.go(redirectTarget);
+      
+    } catch (error) {
+      this.isLoadingDemo = false;
+      
+      console.error("Erro no login Demo:", error);
+      Toast.show("Erro ao entrar no modo de demonstração.", "error");
+      
+      if (demoAdminBtn) {
+        demoAdminBtn.textContent = "Acesso Modo Demonstração";
+        demoAdminBtn.style.opacity = "1";
+        demoAdminBtn.style.cursor = "pointer";
       }
     }
-
-    localStorage.setItem("pokemart_role", "ADMIN");
-    localStorage.setItem("pokemart_demo_mode", "true");
-
-    app.store.user = adminUser;
-
-    const redirectTarget = sessionStorage.getItem("redirectAfterLogin") || "/";
-    sessionStorage.removeItem("redirectAfterLogin");
-
-    Toast.show(
-      "Bem-vindo. Acesso Administrativo liberado (Modo Local).",
-      "success",
-    );
-    app.router.go(redirectTarget);
   }
+
+
 
   async handleAuth() {
     const email = this.root.querySelector("#email").value.trim();
