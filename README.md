@@ -22,6 +22,9 @@
   <br>
   <strong>🔗 Acesse o projeto online:</strong><br>
   <a href="https://pokemart.filpo.com.br">https://pokemart.filpo.com.br</a>
+  <br><br>
+  <strong>☕ Repositório do Backend (API):</strong><br>
+  <a href="https://github.com/mateusfilpo/pokemart-api">https://github.com/mateusfilpo/pokemart-api</a>
 </p>
 
 ---
