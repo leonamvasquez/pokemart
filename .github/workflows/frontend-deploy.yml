@@ -24,7 +24,6 @@ jobs:
 
       - name: Validate nginx config syntax
         run: |
-          # Gera certificados autoassinados para simular os arquivos do Let's Encrypt
           CERT_DIR="${{ github.workspace }}/.ci-certs/live/pokemart.filpo.com.br"
           mkdir -p "$CERT_DIR"
           openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
@@ -37,10 +36,10 @@ jobs:
             -v "${{ github.workspace }}/.ci-certs:/etc/letsencrypt:ro" \
             nginx:stable-alpine nginx -t
 
-      - name: Build Docker image locally (sem push)
+      - name: Build Docker image locally (without push)
         run: docker build -t pokemart-app:ci .
 
-      - name: Scan image para vulnerabilidades (Trivy)
+      - name: Scan image for vulnerabilities (Trivy)
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: pokemart-app:ci
@@ -49,7 +48,7 @@ jobs:
           ignore-unfixed: true
           severity: CRITICAL,HIGH
 
-      - name: Scan repositório para segredos vazados (Gitleaks)
+      - name: Scan repository for secrets (Gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

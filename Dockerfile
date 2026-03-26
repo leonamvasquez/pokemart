@@ -1,6 +1,5 @@
 FROM nginx:stable-alpine
 
-# Atualiza pacotes do Alpine para corrigir CVEs com fix disponível (ex: CVE-2026-22184 / zlib)
 RUN apk upgrade --no-cache
 
 RUN rm -rf /usr/share/nginx/html/*
